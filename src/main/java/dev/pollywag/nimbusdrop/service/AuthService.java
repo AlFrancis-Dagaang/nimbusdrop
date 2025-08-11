@@ -98,7 +98,7 @@ public class AuthService {
         AuthResponse.UserInfo userInfo = new AuthResponse.UserInfo(
                 user.getId(),
                 user.getEmail(),
-                user.getUsername(),
+                user.getPassword(),
                 user.getRole().name()
         );
 

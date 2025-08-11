@@ -3,6 +3,7 @@ package dev.pollywag.nimbusdrop.dto;
 import dev.pollywag.nimbusdrop.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class SignupRequest {
@@ -16,6 +17,7 @@ public class SignupRequest {
     @NotBlank(message = "Username is required")
     private String username;
 
+    @NotNull
     private Role role;
 
     // Constructors

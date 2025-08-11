@@ -3,6 +3,7 @@ package dev.pollywag.nimbusdrop.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class User implements UserDetails {
     @NotBlank(message = "password is required")
     private String password;
 
-    @NotBlank(message = "Role is required")
+    @NotNull
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
@@ -44,7 +45,7 @@ public class User implements UserDetails {
 
     public User() {}
 
-    public User(String email, String username, String password, Role role) {
+    public User(String email, String password,String username, Role role) {
         this.email = email;
         this.username = username;
         this.password = password;
@@ -84,7 +85,7 @@ public class User implements UserDetails {
     }
 
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override

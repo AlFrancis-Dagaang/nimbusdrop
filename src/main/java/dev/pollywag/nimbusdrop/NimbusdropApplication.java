@@ -1,0 +1,13 @@
+package dev.pollywag.nimbusdrop;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class NimbusdropApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(NimbusdropApplication.class, args);
+    }
+
+}

@@ -29,8 +29,6 @@ public class Drop {
     @PrePersist
     protected void onCreate() {
         this.uploadedAt = LocalDateTime.now();
-        this.downloadsDate = LocalDateTime.now();
-        this.viewsDate = LocalDateTime.now();
     }
 
     public Long getId() {

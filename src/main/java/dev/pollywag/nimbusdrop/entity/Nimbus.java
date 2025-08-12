@@ -1,6 +1,7 @@
 package dev.pollywag.nimbusdrop.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +13,21 @@ public class Nimbus {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @NotBlank(message = "name is required")
+    private String nimbusName;
+
     @ManyToOne
     @JoinColumn(name = "nimbus_space_id", nullable = false)
     private NimbusSpace nimbusSpace;
 
     @OneToMany(mappedBy = "nimbus", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Drop> drops = new ArrayList<Drop>();
+
+    public Nimbus() {}
+    public Nimbus(String nimbusName, NimbusSpace nimbusSpace) {
+        this.nimbusName = nimbusName;
+        this.nimbusSpace = nimbusSpace;
+    }
 
     public Long getId() {
         return id;

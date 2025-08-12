@@ -25,6 +25,7 @@ public class NimbusController {
     @PostMapping("")
     public ResponseEntity<ApiResponse<Nimbus>> createNimbus(@RequestBody CreateNimbusRequest body, Principal principal) {
         Nimbus nimbus = nimbusService.createNimbus(body.getNimbusName(), principal.getName());
+        //Bug recursive Sending Data(Sol'n: Create DTO or annonation for JSON in each class)
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Success nimbus created", nimbus));
     }
 }

@@ -8,6 +8,7 @@ import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.exception.TokenRefreshException;
 import dev.pollywag.nimbusdrop.exception.UserAlreadyExistsException;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
+import dev.pollywag.nimbusdrop.security.jwt.JwtService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,9 +24,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final NimbusSpaceService nimbusSpaceService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager
+    , NimbusSpaceService nimbusSpaceService) {
         this.userRepository = userRepository;
+        this.nimbusSpaceService = nimbusSpaceService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
@@ -47,6 +51,7 @@ public class AuthService {
 
         user = userRepository.save(user);
 
+        nimbusSpaceService.createUserNimbusSpace(user.getUserDisplayName());
         // Generate tokens
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);

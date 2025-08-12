@@ -1,7 +1,6 @@
-package dev.pollywag.nimbusdrop.service;
+package dev.pollywag.nimbusdrop.security;
 
 import dev.pollywag.nimbusdrop.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

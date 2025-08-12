@@ -1,4 +1,4 @@
-package dev.pollywag.nimbusdrop.service;
+package dev.pollywag.nimbusdrop.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

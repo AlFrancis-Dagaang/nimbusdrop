@@ -20,10 +20,10 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody SignupRequest request) {
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<AuthResponse>> signup(@Valid @RequestBody SignupRequest request) {
         AuthResponse response = authService.signup(request);
-        return ResponseEntity.ok(ApiResponse.success("User registered successfully", response));
+        return ResponseEntity.ok(ApiResponse.success("User signup successfully", response));
     }
 
     @PostMapping("/login")

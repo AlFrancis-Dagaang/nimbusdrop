@@ -1,6 +1,5 @@
-package dev.pollywag.nimbusdrop.filter;
+package dev.pollywag.nimbusdrop.security.jwt;
 
-import dev.pollywag.nimbusdrop.service.JwtService;
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

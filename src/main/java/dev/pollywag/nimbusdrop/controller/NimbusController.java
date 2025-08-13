@@ -7,10 +7,7 @@ import dev.pollywag.nimbusdrop.entity.Nimbus;
 import dev.pollywag.nimbusdrop.service.NimbusService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -27,6 +24,12 @@ public class NimbusController {
     public ResponseEntity<ApiResponse<NimbusResponse>> createNimbus(@RequestBody CreateNimbusRequest body, Principal principal) {
         NimbusResponse nimbus = nimbusService.createNimbus(body.getNimbusName(), principal.getName());
         //Bug recursive Sending Data(Sol'n: Create DTO or annonation for JSON in each class)
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Success nimbus created", nimbus));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Nimbus created", nimbus));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteNimbus(@PathVariable("id") Long id, Principal principal){
+        nimbusService.deleteNimbus(id, principal.getName());
+        return ResponseEntity.ok(ApiResponse.success("Success deleted the nimbus "));
     }
 }

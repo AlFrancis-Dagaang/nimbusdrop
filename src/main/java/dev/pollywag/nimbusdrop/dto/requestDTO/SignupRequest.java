@@ -1,10 +1,9 @@
-package dev.pollywag.nimbusdrop.dto;
+package dev.pollywag.nimbusdrop.dto.requestDTO;
 
 import dev.pollywag.nimbusdrop.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 public class SignupRequest {
     @Email(message = "Email should be valid")

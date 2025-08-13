@@ -1,4 +1,4 @@
-package dev.pollywag.nimbusdrop.dto;
+package dev.pollywag.nimbusdrop.dto.respondeDTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

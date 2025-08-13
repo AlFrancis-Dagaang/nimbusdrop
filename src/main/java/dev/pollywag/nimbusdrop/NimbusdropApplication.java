@@ -1,7 +1,9 @@
 package dev.pollywag.nimbusdrop;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class NimbusdropApplication {
@@ -10,4 +12,8 @@ public class NimbusdropApplication {
         SpringApplication.run(NimbusdropApplication.class, args);
     }
 
+    @Bean
+    public ModelMapper modelMapperBean() {
+        return new ModelMapper();
+    }
 }

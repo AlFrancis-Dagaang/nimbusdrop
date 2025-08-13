@@ -1,8 +1,8 @@
 package dev.pollywag.nimbusdrop.service;
 
-import dev.pollywag.nimbusdrop.dto.AuthResponse;
-import dev.pollywag.nimbusdrop.dto.LoginRequest;
-import dev.pollywag.nimbusdrop.dto.SignupRequest;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
+import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
+import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
 import dev.pollywag.nimbusdrop.entity.Role;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.exception.TokenRefreshException;

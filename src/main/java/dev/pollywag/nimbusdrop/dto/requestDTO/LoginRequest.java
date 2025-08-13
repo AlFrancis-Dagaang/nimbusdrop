@@ -1,4 +1,4 @@
-package dev.pollywag.nimbusdrop.dto;
+package dev.pollywag.nimbusdrop.dto.requestDTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package dev.pollywag.nimbusdrop.dto;
+package dev.pollywag.nimbusdrop.dto.requestDTO;
 
 public class CreateNimbusRequest {
     private String nimbusName;

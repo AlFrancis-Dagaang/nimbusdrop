@@ -1,7 +1,7 @@
 package dev.pollywag.nimbusdrop.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.pollywag.nimbusdrop.dto.ApiResponse;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;

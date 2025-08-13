@@ -49,6 +49,14 @@ public class Nimbus {
         return nimbusSpace;
     }
 
+    public String getNimbusName() {
+        return nimbusName;
+    }
+
+    public void setNimbusName(String nimbusName) {
+        this.nimbusName = nimbusName;
+    }
+
     public void setNimbusSpace(NimbusSpace nimbusSpace) {
         this.nimbusSpace = nimbusSpace;
     }

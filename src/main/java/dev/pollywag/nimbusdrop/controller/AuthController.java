@@ -1,9 +1,9 @@
 package dev.pollywag.nimbusdrop.controller;
 
-import dev.pollywag.nimbusdrop.dto.ApiResponse;
-import dev.pollywag.nimbusdrop.dto.AuthResponse;
-import dev.pollywag.nimbusdrop.dto.LoginRequest;
-import dev.pollywag.nimbusdrop.dto.SignupRequest;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
+import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
+import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
 import dev.pollywag.nimbusdrop.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
 package dev.pollywag.nimbusdrop.exception;
 
 
-import dev.pollywag.nimbusdrop.dto.ApiResponse;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;

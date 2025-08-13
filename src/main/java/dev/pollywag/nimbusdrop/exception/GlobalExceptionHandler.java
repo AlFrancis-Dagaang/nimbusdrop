@@ -69,6 +69,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("An unexpected error occurred"));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<String>> handleGenericException(RuntimeException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(NimbusNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleNimbusNotFoundException(NimbusNotFoundException ex) {
         return ResponseEntity

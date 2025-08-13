@@ -43,7 +43,11 @@ public class User implements UserDetails {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public User() {}
+    private boolean enabled;
+
+    public User() {
+        this.enabled = false;
+    }
 
     public User(String email, String password,String username, Role role) {
         this.email = email;
@@ -55,6 +59,7 @@ public class User implements UserDetails {
             this.nimbusSpace = new NimbusSpace();
             this.nimbusSpace.setUser(this); // keep bidirectional relationship
         }
+        this.enabled = false;
     }
 
     @PrePersist
@@ -66,6 +71,14 @@ public class User implements UserDetails {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
     }
 
     public Long getId() {

@@ -4,17 +4,24 @@ import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
 import dev.pollywag.nimbusdrop.entity.Role;
+import dev.pollywag.nimbusdrop.entity.TokenType;
 import dev.pollywag.nimbusdrop.entity.User;
+import dev.pollywag.nimbusdrop.entity.VerificationToken;
 import dev.pollywag.nimbusdrop.exception.TokenRefreshException;
 import dev.pollywag.nimbusdrop.exception.UserAlreadyExistsException;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
+import dev.pollywag.nimbusdrop.repository.VerificationTokenRepository;
 import dev.pollywag.nimbusdrop.security.jwt.JwtService;
 import jakarta.transaction.Transactional;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -25,17 +32,22 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final NimbusSpaceService nimbusSpaceService;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager
-    , NimbusSpaceService nimbusSpaceService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       JwtService jwtService, AuthenticationManager authenticationManager
+    , NimbusSpaceService nimbusSpaceService, VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.nimbusSpaceService = nimbusSpaceService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.verificationTokenRepository = verificationTokenRepository;
+        this.emailService = emailService;
     }
 
-    public AuthResponse signup(SignupRequest request) {
+    public String signup(SignupRequest request) {
         // Check if user already exists
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("User already exists with email: " + request.getEmail());
@@ -49,14 +61,28 @@ public class AuthService {
                 request.getRole() != null ? request.getRole() : Role.USER
         );
 
+        user.setEnabled(false);
         user = userRepository.save(user);
 
-        nimbusSpaceService.createUserNimbusSpace(user.getUserDisplayName());
-        // Generate tokens
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(user);
+        verificationToken.setExpiryDate(expiry);
+        verificationToken.setType(TokenType.SIGNUP_CONFIRM);
+        verificationTokenRepository.save(verificationToken);
 
-        return createAuthResponse(user, accessToken, refreshToken);
+        emailService.sendConfirmationEmail(user.getEmail(), token);
+
+        nimbusSpaceService.createUserNimbusSpace(user.getUserDisplayName());
+
+        return "Please check your email to confirm your account.";
+
+        // Generate tokens
+//        String accessToken = jwtService.generateAccessToken(user);
+//        String refreshToken = jwtService.generateRefreshToken(user);
+
     }
 
     public AuthResponse authenticate(LoginRequest request) {
@@ -71,6 +97,10 @@ public class AuthService {
         // Get user details
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if(!user.getEnabled()){
+            throw new RuntimeException("User is not enabled");
+        }
 
         // Generate tokens
         String accessToken = jwtService.generateAccessToken(user);

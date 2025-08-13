@@ -5,7 +5,9 @@ import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
 import dev.pollywag.nimbusdrop.service.AuthService;
+import dev.pollywag.nimbusdrop.service.VerificationService;
 import jakarta.validation.Valid;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,15 +17,17 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final VerificationService verificationService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, VerificationService verificationService) {
         this.authService = authService;
+        this.verificationService = verificationService;
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<AuthResponse>> signup(@Valid @RequestBody SignupRequest request) {
-        AuthResponse response = authService.signup(request);
-        return ResponseEntity.ok(ApiResponse.success("User signup successfully", response));
+    public ResponseEntity<ApiResponse<String>> signup(@Valid @RequestBody SignupRequest request) {
+        String response = authService.signup(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PostMapping("/login")
@@ -42,5 +46,11 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout() {
         return ResponseEntity.ok(ApiResponse.success("Logout successful", "Please remove the token from client storage"));
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<ApiResponse<String>> confirmVerificaton(@Param("token") String token) {
+        String response = verificationService.signUpConfirmation(token);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

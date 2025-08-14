@@ -21,29 +21,25 @@ import java.nio.file.Paths;
 
 @Service
 public class NimbusService {
-    private final Path STORAGE_ROOT = Paths.get("NimbusSpace");
+
     private final NimbusRepository nimbusRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final FileStorageService fileStorageService;
 
-
-    public NimbusService(NimbusRepository nimbusRepository, UserRepository userRepository, ModelMapper modelMapper) {
+    public NimbusService(NimbusRepository nimbusRepository, UserRepository userRepository, ModelMapper modelMapper, FileStorageService fileStorageService) {
         this.nimbusRepository = nimbusRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.fileStorageService = fileStorageService;
     }
 
     public NimbusResponse createNimbus(String nimbusName, String email) {
          User user = userRepository.findByEmail(email).orElseThrow( () -> new UsernameNotFoundException("User not found: " + email));
          Nimbus nimbus = new Nimbus(nimbusName, user.getNimbusSpace());
 
-         Path nimbusPath = STORAGE_ROOT.resolve(user.getUserDisplayName()).resolve(nimbusName);
-
-         try{
-             Files.createDirectories(nimbusPath);
-         }catch (IOException e){
-             throw new RuntimeException(e.getMessage()+": " + nimbusPath);
-         }
+         String userDisplayName = user.getUserDisplayName();
+         fileStorageService.createNimbusDirectory(userDisplayName, nimbusName);
          nimbusRepository.save(nimbus);
 
          return modelMapper.map(nimbus, NimbusResponse.class);
@@ -54,17 +50,11 @@ public class NimbusService {
         Nimbus nimbus = nimbusRepository.findById(id).orElseThrow( () -> new NimbusNotFoundException("Nimbus not found: " + id));
 
         String nimbusName = nimbus.getNimbusName();
-        File nimbusFolder = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).toFile();
-
-        try{
-            if(nimbusFolder.exists()){
-                FileUtils.deleteDirectory(nimbusFolder);
-                nimbusRepository.delete(nimbus);
-            }
-        }catch (IOException e){
-            throw new RuntimeException(e.getMessage()+": " + userDisplayName);
-        }
+        fileStorageService.deleteNimbusDirectory(userDisplayName, nimbusName);
+        nimbusRepository.delete(nimbus);
     }
+
+
 
 
 }

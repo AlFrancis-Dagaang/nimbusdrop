@@ -10,16 +10,13 @@ import java.nio.file.Paths;
 @Service
 public class NimbusSpaceService {
 
-    private final Path STORAGE_ROOT = Paths.get("NimbusSpace");
+    private final FileStorageService fileStorageService;
+
+    public NimbusSpaceService(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
 
     public void createUserNimbusSpace(String userDisplayName) {
-        try{
-            Path userFolder = STORAGE_ROOT.resolve(userDisplayName);
-            if(!Files.exists(userFolder)) {
-                Files.createDirectories(userFolder);
-            }
-        }catch(IOException e){
-            throw new RuntimeException("Failed to create storage folder for " + userDisplayName, e);
-        }
+        fileStorageService.createNimbusSpaceDirectory(userDisplayName);
     }
 }

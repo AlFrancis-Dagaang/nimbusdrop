@@ -1,5 +1,6 @@
 package dev.pollywag.nimbusdrop.controller;
 
+import dev.pollywag.nimbusdrop.dto.requestDTO.UpdateNimbusNameRequest;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.CreateNimbusRequest;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.DropResponse;
@@ -43,4 +44,17 @@ public class NimbusController {
         DropResponse response = dropService.uploadDrop(id, file, principal.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Successfully created the drop", response));
     }
+
+    @DeleteMapping("/drop/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteDrop(@PathVariable Long id) {
+        dropService.deleteDrop(id);
+        return ResponseEntity.ok(ApiResponse.success("Successfully deleted the drop"));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<NimbusResponse>> updateNimbusName (@PathVariable("id") Long id, @RequestBody UpdateNimbusNameRequest request){
+        NimbusResponse response = nimbusService.updateNimbusName(id, request.getNimbusName());
+        return ResponseEntity.ok(ApiResponse.success("Nimbus updated", response));
+    }
+
 }

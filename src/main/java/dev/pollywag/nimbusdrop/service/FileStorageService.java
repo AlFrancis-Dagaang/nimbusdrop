@@ -57,8 +57,7 @@ public class FileStorageService {
 
         String originalFileName = file.getOriginalFilename();
 
-        String dropName = UUID.randomUUID() + "_" +
-                Paths.get(originalFileName).getFileName().toString();
+        String dropName = Paths.get(originalFileName).getFileName().toString();
 
         Path destination = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).resolve(dropName);
 
@@ -70,14 +69,28 @@ public class FileStorageService {
 
     }
 
+    public void deleteDrop(String userDisplayName, String nimbusName, String dropName) {
 
+        Path filePath = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).resolve(dropName);
 
+        try{
+            if(Files.exists(filePath)){
+                Files.delete(filePath);
+            }
+        }catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
 
+    public void nimbusRename(String userDisplayName, String newNimbusName, String oldNimbusName) throws IOException {
+        Path oldPath = STORAGE_ROOT.resolve(userDisplayName).resolve(oldNimbusName);
+        Path newPath = STORAGE_ROOT.resolve(userDisplayName).resolve(newNimbusName);
 
+        if (!Files.exists(oldPath)) {
+            throw new IllegalArgumentException("Folder does not exist: " + oldPath);
+        }
 
-
-
-
-
+        Files.move(oldPath, newPath, StandardCopyOption.ATOMIC_MOVE);
+    }
 
 }

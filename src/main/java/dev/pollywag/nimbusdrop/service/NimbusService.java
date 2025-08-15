@@ -54,6 +54,25 @@ public class NimbusService {
         nimbusRepository.delete(nimbus);
     }
 
+    public NimbusResponse updateNimbusName(Long id, String newNimbusName){
+        Nimbus nimbus = nimbusRepository.findById(id).orElseThrow( () -> new NimbusNotFoundException("Nimbus not found: " + id));
+        User user = nimbus.getNimbusSpace().getUser();
+
+        String userDisplayName = user.getUserDisplayName();
+        String oldNimbusName = nimbus.getNimbusName();
+
+        try {
+            fileStorageService.nimbusRename(userDisplayName, newNimbusName, oldNimbusName);
+        }catch (IOException e){
+            throw new RuntimeException("Failed to rename nimbus file");
+        }
+
+        nimbus.setNimbusName(newNimbusName);
+        nimbus = nimbusRepository.save(nimbus);
+
+        return modelMapper.map(nimbus, NimbusResponse.class);
+    }
+
 
 
 

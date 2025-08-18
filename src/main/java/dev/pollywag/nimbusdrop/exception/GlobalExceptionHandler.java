@@ -97,4 +97,20 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(ApiResponse.error("File too large! Maximum allowed size is 5MB."));
     }
+
+    @ExceptionHandler(ResourceOwnershipException.class)
+    public ResponseEntity<ApiResponse<Object>> handleResourceOwnershipException(ResourceOwnershipException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+
 }

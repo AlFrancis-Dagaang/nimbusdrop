@@ -39,6 +39,18 @@ public class NimbusController {
         return ResponseEntity.ok(ApiResponse.success("Success deleted the nimbus "));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<NimbusResponse>> updateNimbusName (@PathVariable("id") Long id, @RequestBody UpdateNimbusNameRequest request, Principal principal){
+        NimbusResponse response = nimbusService.updateNimbusName(id, request.getNimbusName(), principal.getName());
+        return ResponseEntity.ok(ApiResponse.success("Nimbus updated", response));
+    }
+
+    @DeleteMapping("/{id}/empty")
+    public ResponseEntity<ApiResponse<String>> emptyNimbus(@PathVariable("id") Long id, Principal principal){
+        String response = nimbusService.emptyNimbus(id, principal.getName());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PostMapping("{id}/drops")
     public ResponseEntity<ApiResponse<DropResponse>> uploadDrop(@PathVariable Long id, @RequestParam("file") MultipartFile file, Principal principal) {
         DropResponse response = dropService.uploadDrop(id, file, principal.getName());
@@ -50,11 +62,8 @@ public class NimbusController {
         dropService.deleteDrop(id);
         return ResponseEntity.ok(ApiResponse.success("Successfully deleted the drop"));
     }
+    
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<NimbusResponse>> updateNimbusName (@PathVariable("id") Long id, @RequestBody UpdateNimbusNameRequest request){
-        NimbusResponse response = nimbusService.updateNimbusName(id, request.getNimbusName());
-        return ResponseEntity.ok(ApiResponse.success("Nimbus updated", response));
-    }
+
 
 }

@@ -53,6 +53,17 @@ public class FileStorageService {
         }
     }
 
+    public void emptyNimbusDirectory(String userDisplayName, String nimbusName) {
+        try{
+            File nimbusFolder = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).toFile();
+            if(nimbusFolder.exists()){
+                FileUtils.cleanDirectory(nimbusFolder);
+            }
+        }catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
     public void saveDropFile(String userDisplayName, String nimbusName, MultipartFile file) {
 
         String originalFileName = file.getOriginalFilename();

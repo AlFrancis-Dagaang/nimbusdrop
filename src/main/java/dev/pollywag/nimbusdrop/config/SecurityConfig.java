@@ -45,6 +45,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             "/auth/**",
+            "/public/**",
     };
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService,

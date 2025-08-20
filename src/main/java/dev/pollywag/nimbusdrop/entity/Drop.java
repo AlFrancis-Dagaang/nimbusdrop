@@ -14,13 +14,8 @@ public class Drop {
     private String dropName;
     private String contentType;
     private Long size;
-    private Integer maxDownloadPerDay = 20;
-    private Integer maxViewsPerDay = 50;
-    private Integer downloadsToday = 0;
-    private Integer viewsToday = 0;
-    private LocalDateTime downloadsDate;
-    private LocalDateTime viewsDate;
     private LocalDateTime uploadedAt;
+    private String dropKey;
 
     @ManyToOne
     @JoinColumn(name = "nimbus_id", nullable = false)
@@ -55,6 +50,14 @@ public class Drop {
         this.contentType = contentType;
     }
 
+    public String getDropKey() {
+        return dropKey;
+    }
+
+    public void setDropKey(String dropKey) {
+        this.dropKey = dropKey;
+    }
+
     public Long getSize() {
         return size;
     }
@@ -63,53 +66,7 @@ public class Drop {
         this.size = size;
     }
 
-    public Integer getMaxDownloadPerDay() {
-        return maxDownloadPerDay;
-    }
 
-    public void setMaxDownloadPerDay(Integer maxDownloadPerDay) {
-        this.maxDownloadPerDay = maxDownloadPerDay;
-    }
-
-    public Integer getMaxViewsPerDay() {
-        return maxViewsPerDay;
-    }
-
-    public void setMaxViewsPerDay(Integer maxViewsPerDay) {
-        this.maxViewsPerDay = maxViewsPerDay;
-    }
-
-    public Integer getViewsToday() {
-        return viewsToday;
-    }
-
-    public void setViewsToday(Integer viewsToday) {
-        this.viewsToday = viewsToday;
-    }
-
-    public Integer getDownloadsToday() {
-        return downloadsToday;
-    }
-
-    public void setDownloadsToday(Integer downloadsToday) {
-        this.downloadsToday = downloadsToday;
-    }
-
-    public LocalDateTime getDownloadsDate() {
-        return downloadsDate;
-    }
-
-    public void setDownloadsDate(LocalDateTime downloadsDate) {
-        this.downloadsDate = downloadsDate;
-    }
-
-    public LocalDateTime getViewsDate() {
-        return viewsDate;
-    }
-
-    public void setViewsDate(LocalDateTime viewsDate) {
-        this.viewsDate = viewsDate;
-    }
 
     public LocalDateTime getUploadedAt() {
         return uploadedAt;

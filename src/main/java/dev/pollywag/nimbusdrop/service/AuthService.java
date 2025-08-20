@@ -31,15 +31,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final NimbusSpaceService nimbusSpaceService;
     private final VerificationTokenRepository verificationTokenRepository;
     private final EmailService emailService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, AuthenticationManager authenticationManager
-    , NimbusSpaceService nimbusSpaceService, VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
+    , VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
         this.userRepository = userRepository;
-        this.nimbusSpaceService = nimbusSpaceService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
@@ -75,7 +73,6 @@ public class AuthService {
 
         emailService.sendConfirmationEmail(user.getEmail(), token);
 
-        nimbusSpaceService.createUserNimbusSpace(user.getUserDisplayName());
 
         return "Please check your email to confirm your account.";
 

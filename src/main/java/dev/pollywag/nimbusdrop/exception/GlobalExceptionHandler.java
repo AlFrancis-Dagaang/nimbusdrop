@@ -112,5 +112,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+    @ExceptionHandler(DropNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDropNotFoundException(DropNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
 
 }

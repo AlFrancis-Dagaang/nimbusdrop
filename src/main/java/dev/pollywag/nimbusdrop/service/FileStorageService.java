@@ -1,12 +1,15 @@
 package dev.pollywag.nimbusdrop.service;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.core.io.Resource;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,73 +19,60 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    private final Path STORAGE_ROOT = Paths.get("NimbusSpace");
+    private final Path STORAGE_ROOT = Paths.get("drop-storage");
 
     public FileStorageService(){}
 
-    public void createNimbusSpaceDirectory(String userDisplayName) {
+
+
+    public void deleteNimbusDirectory(String nimbusDirectory) {
         try{
-            Path path = STORAGE_ROOT.resolve(userDisplayName);
-            if(!Files.exists(path)){
-                Files.createDirectory(path);
+            Path nimbusFolder = STORAGE_ROOT.resolve(nimbusDirectory);
+            if(Files.exists(nimbusFolder)) {
+                FileUtils.deleteDirectory(nimbusFolder.toFile());
             }
         }catch (IOException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void createNimbusDirectory(String userDisplayName, String nimbusName) {
+    public void emptyNimbusDirectory(String nimbusPath) {
         try{
-            Path path = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName);
-            if(!Files.exists(path)){
-                Files.createDirectories(path);
-            }
-        }catch (IOException e){
-            System.out.println(e.getMessage());
-        }
-    }
-
-    public void deleteNimbusDirectory(String userDisplayName, String nimbusName) {
-        try{
-            File nimbusFolder = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).toFile();
-            if(nimbusFolder.exists()){
-                FileUtils.deleteDirectory(nimbusFolder);
-            }
-        }catch (IOException e){
-            System.out.println(e.getMessage());
-        }
-    }
-
-    public void emptyNimbusDirectory(String userDisplayName, String nimbusName) {
-        try{
-            File nimbusFolder = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).toFile();
+            File nimbusFolder = STORAGE_ROOT.resolve(nimbusPath).toFile();
             if(nimbusFolder.exists()){
                 FileUtils.cleanDirectory(nimbusFolder);
             }
         }catch (IOException e){
-            System.out.println(e.getMessage());
+            throw new RuntimeException("Failed to clean nimbus directory: " + nimbusPath, e);
         }
     }
 
-    public void saveDropFile(String userDisplayName, String nimbusName, MultipartFile file) {
+    public void saveDropFile(String dropKey, MultipartFile multipartFile) throws IOException {
 
-        String originalFileName = file.getOriginalFilename();
 
-        String dropName = Paths.get(originalFileName).getFileName().toString();
-
-        Path destination = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).resolve(dropName);
-
-        try (InputStream inputStream = file.getInputStream()) {
+        Path destination = STORAGE_ROOT.resolve(dropKey);
+        Files.createDirectories(destination.getParent());
+        try (InputStream inputStream = multipartFile.getInputStream()) {
             Files.copy(inputStream, destination, StandardCopyOption.REPLACE_EXISTING);
         }catch (IOException e){
             System.out.println(e.getMessage());
         }
-
     }
 
-    public void deleteDrop(String userDisplayName, String nimbusName, String dropName) {
+    public Resource openDropFile(String dropKey ) throws MalformedURLException {
 
-        Path filePath = STORAGE_ROOT.resolve(userDisplayName).resolve(nimbusName).resolve(dropName);
+        Path filePath = STORAGE_ROOT.resolve(dropKey);
+
+        if (!Files.exists(filePath)) {
+            throw new RuntimeException("File not found");
+        }
+
+        return new UrlResource(filePath.toUri());
+    }
+
+    public void deleteDrop(String dropKey) throws IOException {
+
+        Path filePath = STORAGE_ROOT.resolve(dropKey);
 
         try{
             if(Files.exists(filePath)){
@@ -93,15 +83,35 @@ public class FileStorageService {
         }
     }
 
-    public void nimbusRename(String userDisplayName, String newNimbusName, String oldNimbusName) throws IOException {
-        Path oldPath = STORAGE_ROOT.resolve(userDisplayName).resolve(oldNimbusName);
-        Path newPath = STORAGE_ROOT.resolve(userDisplayName).resolve(newNimbusName);
+    public Resource dowloadDropFile(String dropKey) throws MalformedURLException {
+        Path filePath = STORAGE_ROOT.resolve(dropKey).normalize();
 
-        if (!Files.exists(oldPath)) {
-            throw new IllegalArgumentException("Folder does not exist: " + oldPath);
+        if (!Files.exists(filePath)) {
+            throw new RuntimeException("File not found");
         }
 
-        Files.move(oldPath, newPath, StandardCopyOption.ATOMIC_MOVE);
+        return new UrlResource(filePath.toUri());
     }
+
+    public Resource getDropFileLink(String dropKey) throws MalformedURLException {
+        Path filePath = STORAGE_ROOT.resolve(dropKey).normalize();
+
+        if (!Files.exists(filePath)) {
+            throw new RuntimeException("File not found");
+        }
+
+        return new UrlResource(filePath.toUri());
+    }
+
+//    public void nimbusRename(String userDisplayName, String newNimbusName, String oldNimbusName) throws IOException {
+//        Path oldPath = STORAGE_ROOT.resolve(userDisplayName).resolve(oldNimbusName);
+//        Path newPath = STORAGE_ROOT.resolve(userDisplayName).resolve(newNimbusName);
+//
+//        if (!Files.exists(oldPath)) {
+//            throw new IllegalArgumentException("Folder does not exist: " + oldPath);
+//        }
+//
+//        Files.move(oldPath, newPath, StandardCopyOption.ATOMIC_MOVE);
+//    }
 
 }

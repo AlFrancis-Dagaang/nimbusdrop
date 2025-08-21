@@ -26,6 +26,8 @@ public class VerificationToken {
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
+    private String newEmail;
+
     private boolean used = false;
 
     public VerificationToken() {
@@ -37,6 +39,14 @@ public class VerificationToken {
         this.type = type;
         this.user = user;
         this.expiryDate = expiryDate;
+    }
+
+    public String getNewEmail() {
+        return newEmail;
+    }
+
+    public void setNewEmail(String newEmail) {
+        this.newEmail = newEmail;
     }
 
     public Long getId() {

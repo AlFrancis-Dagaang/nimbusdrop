@@ -17,11 +17,6 @@ public class DropSharedLink {
 
     public DropSharedLink() {}
 
-    public DropSharedLink(String token, Long dropId, LocalDateTime expiresAt) {
-        this.token = token;
-        this.dropId = dropId;
-        this.expiresAt = expiresAt;
-    }
 
     public Long getId() {
         return id;

@@ -49,8 +49,14 @@ public class AuthController {
     }
 
     @GetMapping("/confirm")
-    public ResponseEntity<ApiResponse<String>> confirmVerification(@Param("token") String token) {
+    public ResponseEntity<ApiResponse<String>> confirmSignupVerification(@Param("token") String token) {
         String response = verificationService.signUpConfirmation(token);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/email")
+    public ResponseEntity<ApiResponse<String>> confirmEmailVerification(@Param("token") String token) {
+        String response = verificationService.newEmailConfirmation(token);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

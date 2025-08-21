@@ -24,19 +24,35 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendDeleteTokenEmail(String toEmail, String token) {
-        SimpleMailMessage message = new SimpleMailMessage();
+    public void sendConfirmationNewEmail(String toEmail, String token) {
+        String confirmUrl = "http://localhost:8085/auth/email?token=" + token;
+
         message.setTo(toEmail);
-        message.setSubject("NimbusDrop - Confirm Deletion Request");
-        message.setText(
-                "Hello,\n\n" +
-                        "A request was made to delete an item in your NimbusDrop account.\n" +
-                        "Please confirm this action by entering the following token in the app:\n\n" +
-                        token + "\n\n" +
-                        "This token will expire in 5 minutes. If you did not request this, you can ignore this email.\n\n" +
-                        "Stay safe,\n" +
-                        "NimbusDrop Security Team"
-        );
+        message.setSubject("Confirm your email");
+        message.setText("Click the link to confirm your email: " + confirmUrl);
+
         mailSender.send(message);
     }
+
+    public void sendTokenCodeForDeletion(String toEmail, String token) {
+        message.setTo(toEmail);
+        message.setSubject("Confirm Your Account Deletion");
+
+        String body = String.format(
+                "Hello,\n\n" +
+                        "We received a request to delete your account. " +
+                        "If you really want to proceed, please enter the following confirmation code in the app:\n\n" +
+                        "    %s\n\n" +
+                        "⚠️ This code will expire in 10 minutes. If you did not request account deletion, please ignore this email.\n\n" +
+                        "Thanks,\n" +
+                        "YourApp Team",
+                token
+        );
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+
+
 }

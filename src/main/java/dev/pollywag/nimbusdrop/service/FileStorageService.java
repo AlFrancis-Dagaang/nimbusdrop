@@ -103,6 +103,22 @@ public class FileStorageService {
         return new UrlResource(filePath.toUri());
     }
 
+    public void deleteUserDropFolder(String dropKey) {
+        Path folderPath = STORAGE_ROOT.resolve(dropKey).normalize();
+
+        if (!Files.exists(folderPath)) {
+            throw new RuntimeException("Folder not found: " + dropKey);
+        }
+
+        try {
+            FileUtils.deleteDirectory(folderPath.toFile()); // ✅ deletes folder + all contents
+        } catch (IOException e) {
+            throw new RuntimeException("Error while deleting folder: " + folderPath, e);
+        }
+    }
+
+
+
 //    public void nimbusRename(String userDisplayName, String newNimbusName, String oldNimbusName) throws IOException {
 //        Path oldPath = STORAGE_ROOT.resolve(userDisplayName).resolve(oldNimbusName);
 //        Path newPath = STORAGE_ROOT.resolve(userDisplayName).resolve(newNimbusName);

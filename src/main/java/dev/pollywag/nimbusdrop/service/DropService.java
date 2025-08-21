@@ -92,7 +92,6 @@ public class DropService {
 
         //Save Nimbus and Drop
         nimbus.getDrops().add(drop);
-        dropRepository.save(drop);
         nimbusRepository.save(nimbus);
 
         //Register upload for quota tracking

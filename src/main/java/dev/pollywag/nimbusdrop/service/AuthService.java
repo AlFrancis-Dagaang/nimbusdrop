@@ -60,7 +60,7 @@ public class AuthService {
         );
 
         user.setEnabled(false);
-        user = userRepository.save(user);
+
 
         String token = UUID.randomUUID().toString();
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
@@ -69,17 +69,14 @@ public class AuthService {
         verificationToken.setUser(user);
         verificationToken.setExpiryDate(expiry);
         verificationToken.setType(TokenType.SIGNUP_CONFIRM);
-        verificationTokenRepository.save(verificationToken);
+        user.getVerificationTokens().add(verificationToken);
+
+        userRepository.save(user);
 
         emailService.sendConfirmationEmail(user.getEmail(), token);
 
 
         return "Please check your email to confirm your account.";
-
-        // Generate tokens
-//        String accessToken = jwtService.generateAccessToken(user);
-//        String refreshToken = jwtService.generateRefreshToken(user);
-
     }
 
     public AuthResponse authenticate(LoginRequest request) {

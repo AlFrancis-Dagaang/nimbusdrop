@@ -1,10 +1,13 @@
 package dev.pollywag.nimbusdrop.service;
 
+import dev.pollywag.nimbusdrop.dto.respondeDTO.NimbusResponse;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.UserResponse;
+import dev.pollywag.nimbusdrop.entity.Nimbus;
 import dev.pollywag.nimbusdrop.entity.TokenType;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.entity.VerificationToken;
 import dev.pollywag.nimbusdrop.exception.ResourceOwnershipException;
+import dev.pollywag.nimbusdrop.repository.NimbusRepository;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
 import dev.pollywag.nimbusdrop.repository.VerificationTokenRepository;
 import org.apache.coyote.BadRequestException;
@@ -13,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -22,15 +26,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
-    private final VerificationTokenRepository verificationTokenRepository;
     private final EmailService emailService;
+    private final NimbusRepository nimbusRepository;
     public UserService(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder,
-                       VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
+                       EmailService emailService, NimbusRepository nimbusRepository) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
-        this.verificationTokenRepository = verificationTokenRepository;
         this.emailService = emailService;
+        this.nimbusRepository = nimbusRepository;
     }
 
     public UserResponse changeUsername(Long userId, String newUsername, String email) {
@@ -115,5 +119,18 @@ public class UserService {
         emailService.sendTokenCodeForDeletion(email, token);
 
         return "Check your email for the code";
+    }
+
+    public List<Nimbus> findAllNimbusByUserId(Long userId, String email) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(!user.getEmail().equals(email)) {
+            throw new ResourceOwnershipException("You are not allowed to get nimbus for this user");
+        }
+
+        Long nimbusSpaceId = user.getNimbusSpace().getId();
+
+        return nimbusRepository.findByNimbusSpaceId(nimbusSpaceId);
+
     }
 }

@@ -5,24 +5,31 @@ import dev.pollywag.nimbusdrop.dto.requestDTO.ChangeEmailRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.ChangePasswordRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.ChangeUsernameRequest;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.NimbusResponse;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.UserResponse;
+import dev.pollywag.nimbusdrop.entity.Nimbus;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.service.UserService;
 import dev.pollywag.nimbusdrop.service.VerificationService;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
     private final UserService userService;
     private final VerificationService verificationService;
-    public UserController(UserService userService, VerificationService verificationService) {
+    private final ModelMapper modelMapper;
+    public UserController(UserService userService, VerificationService verificationService, ModelMapper modelMapper) {
         this.userService = userService;
         this.verificationService = verificationService;
+        this.modelMapper = modelMapper;
     }
 
     @PostMapping("/{userId}/username")
@@ -52,6 +59,14 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> confirmDeleteAccount (@PathVariable Long userId, @RequestBody AccountDeletionRequest request, Principal principal ) {
         String response = verificationService.confirmTokenDeletionAccount(userId, request.getToken(), principal.getName());
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
+    @GetMapping("/{userId}/nimbus")
+    public ResponseEntity<ApiResponse<List<NimbusResponse>>> getAllNimbusOfUser (@PathVariable Long userId, Principal principal) {
+        List<Nimbus> userNimbus = userService.findAllNimbusByUserId(userId, principal.getName());
+        List<NimbusResponse> responseList = userNimbus.stream().map(nimbus -> modelMapper.map(nimbus, NimbusResponse.class)).toList();
+        return ResponseEntity.ok(ApiResponse.success(responseList));
     }
 
 

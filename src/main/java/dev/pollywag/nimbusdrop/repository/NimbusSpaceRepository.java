@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface NimbusSpaceRepository extends JpaRepository<NimbusSpace, Long> {
     Optional<NimbusSpace> findNimbusSpaceById(Long id);
+
 }

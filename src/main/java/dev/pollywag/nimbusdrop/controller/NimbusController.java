@@ -104,8 +104,4 @@ public class NimbusController {
         String response = nimbusService.createShareLink(dropId, principal.getName());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
-    
-
-
-
 }

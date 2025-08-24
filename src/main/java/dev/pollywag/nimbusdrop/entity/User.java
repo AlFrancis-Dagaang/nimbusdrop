@@ -44,6 +44,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VerificationToken> verificationTokens = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Nimbus> nimbus = new ArrayList<Nimbus>();
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -72,7 +75,13 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
 
+    public List<Nimbus> getNimbus() {
+        return nimbus;
+    }
 
+    public void setNimbus(List<Nimbus> nimbus) {
+        this.nimbus = nimbus;
+    }
 
     @PreUpdate
     public void preUpdate() {

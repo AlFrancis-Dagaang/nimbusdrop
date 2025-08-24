@@ -18,16 +18,16 @@ public class Nimbus {
     private String nimbusName;
 
     @ManyToOne
-    @JoinColumn(name = "nimbus_space_id", nullable = false)
-    private NimbusSpace nimbusSpace;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "nimbus", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Drop> drops = new ArrayList<Drop>();
 
     public Nimbus() {}
-    public Nimbus(String nimbusName, NimbusSpace nimbusSpace) {
+    public Nimbus(String nimbusName, User user) {
         this.nimbusName = nimbusName;
-        this.nimbusSpace = nimbusSpace;
+        this.user = user;
     }
 
     public Long getId() {
@@ -46,8 +46,11 @@ public class Nimbus {
         this.drops = drops;
     }
 
-    public NimbusSpace getNimbusSpace() {
-        return nimbusSpace;
+    public User getUser() {
+        return user;
+    }
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getNimbusName() {
@@ -58,7 +61,4 @@ public class Nimbus {
         this.nimbusName = nimbusName;
     }
 
-    public void setNimbusSpace(NimbusSpace nimbusSpace) {
-        this.nimbusSpace = nimbusSpace;
-    }
 }

@@ -31,9 +31,6 @@ public class NimbusSpace {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "nimbusSpace", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Nimbus> nimbus = new ArrayList<Nimbus>();
-
     @PrePersist
     public void prePersist() {
         if (maxStorageBytes == null) {
@@ -148,11 +145,4 @@ public class NimbusSpace {
         this.uploadsDate = uploadsDate;
     }
 
-    public List<Nimbus> getNimbus() {
-        return nimbus;
-    }
-
-    public void setNimbus(List<Nimbus> nimbus) {
-        this.nimbus = nimbus;
-    }
 }

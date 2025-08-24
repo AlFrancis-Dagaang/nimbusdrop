@@ -9,6 +9,7 @@ import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.entity.VerificationToken;
 import dev.pollywag.nimbusdrop.exception.TokenRefreshException;
 import dev.pollywag.nimbusdrop.exception.UserAlreadyExistsException;
+import dev.pollywag.nimbusdrop.exception.UserNotEnableException;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
 import dev.pollywag.nimbusdrop.repository.VerificationTokenRepository;
 import dev.pollywag.nimbusdrop.security.jwt.JwtService;
@@ -33,34 +34,35 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final VerificationTokenRepository verificationTokenRepository;
     private final EmailService emailService;
+    private final EntityFetcher entityFetcher;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, AuthenticationManager authenticationManager
-    , VerificationTokenRepository verificationTokenRepository, EmailService emailService) {
+    , VerificationTokenRepository verificationTokenRepository, EmailService emailService, EntityFetcher entityFetcher) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.verificationTokenRepository = verificationTokenRepository;
         this.emailService = emailService;
+        this.entityFetcher = entityFetcher;
     }
 
-    public String signup(SignupRequest request) {
+    public void signup(String email, String username, String password, Role role) {
         // Check if user already exists
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException("User already exists with email: " + request.getEmail());
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new UserAlreadyExistsException("User already exists with email: " + email);
         }
 
         // Create new user
         User user = new User(
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword()),
-                request.getUsername(),
-                request.getRole() != null ? request.getRole() : Role.USER
+                email,
+                passwordEncoder.encode(password),
+                username,
+                role != null ? role : Role.USER
         );
 
         user.setEnabled(false);
-
 
         String token = UUID.randomUUID().toString();
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
@@ -74,26 +76,17 @@ public class AuthService {
         userRepository.save(user);
 
         emailService.sendConfirmationEmail(user.getEmail(), token);
-
-
-        return "Please check your email to confirm your account.";
     }
 
-    public AuthResponse authenticate(LoginRequest request) {
+    public AuthResponse authenticate(String email, String password) {
         // Authenticate user
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
 
         // Get user details
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = entityFetcher.getUserByEmail(email);
 
         if(!user.getEnabled()){
-            throw new RuntimeException("User is not enabled");
+            throw new UserNotEnableException("User is not enabled");
         }
 
         // Generate tokens

@@ -20,13 +20,15 @@ public class DropSharedLinkService {
     private final DropRepository dropRepository;
     private final FileStorageService fileStorageService;
     private final QuotaService quotaService;
+    private final EntityFetcher entityFetcher;
 
     public DropSharedLinkService(DropShareLinkRepository dropShareLinkRepository, DropRepository dropRepository
-    , FileStorageService fileStorageService, QuotaService quotaService) {
+    , FileStorageService fileStorageService, QuotaService quotaService, EntityFetcher entityFetcher) {
         this.dropShareLinkRepository = dropShareLinkRepository;
         this.dropRepository = dropRepository;
         this.fileStorageService = fileStorageService;
         this.quotaService = quotaService;
+        this.entityFetcher = entityFetcher;
     }
 
     public Resource dropSharedLink(String token) throws MalformedURLException {
@@ -34,12 +36,12 @@ public class DropSharedLinkService {
         LocalDateTime expiresAt = dropSharedLink.getExpiresAt();
 
         if(expiresAt.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Expired token");
+            throw new IllegalArgumentException("Url link is expired");
         }
 
-        Drop drop = dropRepository.findById(dropSharedLink.getDropId()).orElseThrow(() -> new DropNotFoundException("Invalid dropId"));
+        Drop drop = entityFetcher.getDropById(dropSharedLink.getDropId());
 
-        NimbusSpace nimbusSpace = drop.getNimbus().getNimbusSpace();
+        NimbusSpace nimbusSpace = drop.getNimbus().getUser().getNimbusSpace();
 
         if(!quotaService.canDownload(nimbusSpace.getId())){
             throw new UploadQuotaException("Download quota exceeded");

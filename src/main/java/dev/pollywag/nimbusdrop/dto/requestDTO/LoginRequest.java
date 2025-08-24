@@ -11,9 +11,6 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    // Constructors
-    public LoginRequest() {}
-
     public LoginRequest(String email, String password) {
         this.email = email;
         this.password = password;

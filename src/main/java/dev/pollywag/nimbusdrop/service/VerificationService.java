@@ -3,9 +3,11 @@ package dev.pollywag.nimbusdrop.service;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.entity.VerificationToken;
+import dev.pollywag.nimbusdrop.exception.InvalidVerificationTokenException;
 import dev.pollywag.nimbusdrop.exception.ResourceOwnershipException;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
 import dev.pollywag.nimbusdrop.repository.VerificationTokenRepository;
+import dev.pollywag.nimbusdrop.util.ValidatingVerificationTokenUtil;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,88 +18,64 @@ public class VerificationService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final FileStorageService fileStorageService;
+    private final EntityFetcher entityFetcher;
 
     public VerificationService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository
-    , FileStorageService fileStorageService) {
+            , FileStorageService fileStorageService, EntityFetcher entityFetcher) {
         this.userRepository = userRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.fileStorageService = fileStorageService;
+        this.entityFetcher = entityFetcher;
     }
 
-    public String signUpConfirmation(String token){
-        VerificationToken verificationToken = verificationTokenRepository.findByToken(token).orElseThrow(()-> new RuntimeException("Token not found"));
+    public void signUpConfirmation(String token){
+        VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);
 
-        if(verificationToken.getExpiryDate().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Token is expired");
-        }
+        LocalDateTime expiryDate = verificationToken.getExpiryDate();
+        boolean isUsed = verificationToken.isUsed();
 
-        if(verificationToken.isUsed()){
-            throw new RuntimeException("Token is already used");
-        }
+        ValidatingVerificationTokenUtil.validateVerificationToken(expiryDate, isUsed);
+
         String userEmail = verificationToken.getUser().getEmail();
-        User user = userRepository.findByEmail(userEmail).orElseThrow(()-> new RuntimeException("User not found"));
 
+        User user = entityFetcher.getUserByEmail(userEmail);
         verificationToken.setUsed(true);
         user.setEnabled(true);
 
         userRepository.save(user);
-        verificationTokenRepository.save(verificationToken);
 
-        return "Account confirmed. You can now log in.";
     }
 
-    public String newEmailConfirmation(String token){
-        VerificationToken verificationToken = verificationTokenRepository.findByToken(token).orElseThrow(()-> new RuntimeException("Token not found"));
+    public void newEmailConfirmation(String token){
+        VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);
 
-        if(verificationToken.getExpiryDate().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Token is expired");
-        }
+        LocalDateTime expiryDate = verificationToken.getExpiryDate();
+        boolean isUsed = verificationToken.isUsed();
 
-        if(verificationToken.isUsed()){
-            throw new RuntimeException("Token is already used");
-        }
-
+        ValidatingVerificationTokenUtil.validateVerificationToken(expiryDate, isUsed);
 
         User user = verificationToken.getUser();
         verificationToken.setUsed(true);
         user.setEmail(verificationToken.getNewEmail());
 
         userRepository.save(user);
-        verificationTokenRepository.save(verificationToken);
-
-        return "Email confirmed. You can now log in to your new email.";
     }
 
-    public String confirmTokenDeletionAccount(Long userId, String token, String email){
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public void confirmTokenDeletionAccount(String token, String email){
+        User user = entityFetcher.getUserByEmail(email);
 
-        if(!user.getUserDisplayName().equals(userDisplayName)) {
-            throw new ResourceOwnershipException("You are not allowed to delete this user");
-        }
+        VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);
 
-        VerificationToken verificationToken = verificationTokenRepository.findByToken(token).orElseThrow(()-> new RuntimeException("Token not found"));
+        LocalDateTime expiryDate = verificationToken.getExpiryDate();
+        boolean isUsed = verificationToken.isUsed();
 
-        if(verificationToken.getExpiryDate().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Token is expired");
-        }
-
-        if(verificationToken.isUsed()){
-            throw new RuntimeException("Token is already used");
-        }
-
-        user = verificationToken.getUser();
+        ValidatingVerificationTokenUtil.validateVerificationToken(expiryDate, isUsed);
 
         String userRootStorage = "user_"+user.getId();
 
-        if(!user.getNimbusSpace().getNimbus().isEmpty()){
-            fileStorageService.deleteUserDropFolder(userRootStorage);
-        }
+        fileStorageService.deleteUserDropFolder(userRootStorage);
 
-        verificationTokenRepository.delete(verificationToken);
         userRepository.delete(user);
-
-        return "Successfully deleted account";
     }
 
 

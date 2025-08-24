@@ -2,17 +2,17 @@ package dev.pollywag.nimbusdrop.dto.respondeDTO;
 
 public class NimbusResponse {
     private Long id;
-    private Long nimbusSpaceId;
+    private Long userId;
     private String nimbusName;
 
-
-    public Long getNimbusSpaceId() {
-        return nimbusSpaceId;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setNimbusSpaceId(Long nimbusSpaceId) {
-        this.nimbusSpaceId = nimbusSpaceId;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
+
 
     public NimbusResponse(){
         super();

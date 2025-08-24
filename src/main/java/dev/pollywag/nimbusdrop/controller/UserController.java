@@ -11,6 +11,7 @@ import dev.pollywag.nimbusdrop.entity.Nimbus;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.service.UserService;
 import dev.pollywag.nimbusdrop.service.VerificationService;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,41 +33,71 @@ public class UserController {
         this.modelMapper = modelMapper;
     }
 
-    @PostMapping("/{userId}/username")
-    public ResponseEntity<ApiResponse<UserResponse>> changeUsername(@PathVariable Long userId, @RequestBody ChangeUsernameRequest request, Principal principal) {
-        UserResponse response = userService.changeUsername(userId, request.getNewUsername(), principal.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User changed successfully", response));
-    }
-    @PostMapping("/{userId}/password")
-    public ResponseEntity<ApiResponse<String>> changePassword(@PathVariable Long userId, @RequestBody ChangePasswordRequest request, Principal principal) {
-        String response = userService.changePassword(userId, request.getNewPassword(), request.getOldPassword(), principal.getName());
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+    @PostMapping("/username")
+    public ResponseEntity<ApiResponse<UserResponse>> changeUsername(@Valid @RequestBody ChangeUsernameRequest request, Principal principal) {
+        String newUsername = request.getNewUsername();
+        String email = principal.getName();
+
+        User updateUser = userService.changeUsername(newUsername, email);
+        UserResponse response = modelMapper.map(updateUser, UserResponse.class);
+
+        return ResponseEntity.ok(ApiResponse.success("Username changed successfully", response));
     }
 
-    @PostMapping("/{userId}/email")
-    public ResponseEntity<ApiResponse<String>> changeEmail (@PathVariable Long userId, @RequestBody ChangeEmailRequest request, Principal principal ) {
-        String response = userService.changeEmail(userId, request.getNewEmail(), request.getPassword(), principal.getName());
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
+    @PostMapping("/password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@Valid @RequestBody ChangePasswordRequest request, Principal principal) {
+        String newPassword = request.getNewPassword();
+        String oldPassword = request.getOldPassword();
+        String email = principal.getName();
 
-    @GetMapping("/{userId}/delete-token")
-    public ResponseEntity<ApiResponse<String>> requestDeleteToken (@PathVariable Long userId, Principal principal ) {
-        String response = userService.deleteToken(userId, principal.getName());
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
+        userService.changePassword(newPassword, oldPassword, email);
 
-    @PostMapping("/{userId}/confirm-delete")
-    public ResponseEntity<ApiResponse<String>> confirmDeleteAccount (@PathVariable Long userId, @RequestBody AccountDeletionRequest request, Principal principal ) {
-        String response = verificationService.confirmTokenDeletionAccount(userId, request.getToken(), principal.getName());
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
     }
 
 
-    @GetMapping("/{userId}/nimbus")
-    public ResponseEntity<ApiResponse<List<NimbusResponse>>> getAllNimbusOfUser (@PathVariable Long userId, Principal principal) {
-        List<Nimbus> userNimbus = userService.findAllNimbusByUserId(userId, principal.getName());
-        List<NimbusResponse> responseList = userNimbus.stream().map(nimbus -> modelMapper.map(nimbus, NimbusResponse.class)).toList();
-        return ResponseEntity.ok(ApiResponse.success(responseList));
+    @PostMapping("/email")
+    public ResponseEntity<ApiResponse<?>> changeEmail (@Valid @RequestBody ChangeEmailRequest request, Principal principal ) {
+        String newEmail = request.getNewEmail();
+        String password = request.getPassword();
+        String email = principal.getName();
+
+        userService.changeEmail(newEmail, password, email);
+
+        return ResponseEntity.ok(ApiResponse.success("Check you email to verify your new email address"));
+    }
+
+    @GetMapping("/token/delete")
+    public ResponseEntity<ApiResponse<?>> requestDeleteToken (Principal principal ) {
+        String email = principal.getName();
+        userService.deleteToken(email);
+
+        return ResponseEntity.ok(ApiResponse.success("Check you email to get your token"));
+    }
+
+    @PostMapping("/account/delete/confirm")
+    public ResponseEntity<ApiResponse<String>> confirmDeleteAccount (@Valid @RequestBody AccountDeletionRequest request, Principal principal ) {
+        String token = request.getToken();
+        String email = principal.getName();
+
+        verificationService.confirmTokenDeletionAccount(token, email);
+
+        return ResponseEntity.ok(ApiResponse.success("Account deleted successfully"));
+    }
+
+
+    @GetMapping("/nimbus")
+    public ResponseEntity<ApiResponse<List<NimbusResponse>>> getAllNimbusOfUser (Principal principal) {
+        String email = principal.getName();
+
+        List<Nimbus> userNimbus = userService.findAllNimbusByUserId(email);
+
+        List<NimbusResponse> responseList = userNimbus.stream()
+                .map(nimbus -> modelMapper.map(nimbus, NimbusResponse.class))
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.success("Retrieved all nimbus", responseList));
     }
 
 

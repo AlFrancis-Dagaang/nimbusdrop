@@ -8,8 +8,18 @@ public class DropResponse {
     private String contentType;
     private Long size;
     private LocalDateTime uploadedAt;
+    private String url;
+
 
     public DropResponse() {}
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     public Long getId() {
         return id;

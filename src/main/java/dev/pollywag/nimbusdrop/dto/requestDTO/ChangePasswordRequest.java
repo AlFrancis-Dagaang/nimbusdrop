@@ -1,7 +1,12 @@
 package dev.pollywag.nimbusdrop.dto.requestDTO;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class ChangePasswordRequest {
+    @NotBlank(message = "Old password is required")
     private String oldPassword;
+
+    @NotBlank(message = "New password is required")
     private String newPassword;
 
     public String getOldPassword() {

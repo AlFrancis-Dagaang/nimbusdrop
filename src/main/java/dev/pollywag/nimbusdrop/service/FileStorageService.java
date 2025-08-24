@@ -23,8 +23,6 @@ public class FileStorageService {
 
     public FileStorageService(){}
 
-
-
     public void deleteNimbusDirectory(String nimbusDirectory) {
         try{
             Path nimbusFolder = STORAGE_ROOT.resolve(nimbusDirectory);

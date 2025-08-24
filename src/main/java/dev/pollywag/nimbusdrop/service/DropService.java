@@ -13,6 +13,7 @@ import dev.pollywag.nimbusdrop.repository.DropRepository;
 import dev.pollywag.nimbusdrop.repository.NimbusRepository;
 import dev.pollywag.nimbusdrop.repository.NimbusSpaceRepository;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
+import dev.pollywag.nimbusdrop.util.CheckOwnerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.Resource;
@@ -37,10 +38,11 @@ public class DropService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final NimbusSpaceRepository nimbusSpaceRepository;
+    private final EntityFetcher entityFetcher;
 
     public DropService(DropRepository dropRepository, QuotaService quotaService,
                        NimbusRepository nimbusRepository, FileStorageService fileStorageService
-    , UserRepository userRepository, ModelMapper modelMapper, NimbusSpaceRepository nimbusSpaceRepository) {
+    , UserRepository userRepository, ModelMapper modelMapper, NimbusSpaceRepository nimbusSpaceRepository, EntityFetcher entityFetcher) {
         this.dropRepository = dropRepository;
         this.quotaService = quotaService;
         this.nimbusRepository = nimbusRepository;
@@ -48,39 +50,34 @@ public class DropService {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.nimbusSpaceRepository = nimbusSpaceRepository;
+        this.entityFetcher = entityFetcher;
     }
 
     public Drop getDropById(Long dropId) {
         return dropRepository.findById(dropId).orElseThrow(()-> new DropNotFoundException("Drop not found"));
     }
 
-    public DropResponse uploadDrop(Long nimbusId, MultipartFile file, String email) {
-        //Get the user for user displayName
-        User user = this.userRepository.findByEmail(email).orElseThrow(() -> new NimbusNotFoundException(email));
+    public Drop uploadDrop(Long nimbusId, MultipartFile file, String email) throws IOException {
+        User user = entityFetcher.getUserByEmail(email);
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
+        NimbusSpace nimbusSpace = user.getNimbusSpace();
 
-        //Check Upload quota
-        Nimbus nimbus = nimbusRepository.findNimbusById(nimbusId).orElseThrow(() -> new NimbusNotFoundException("Nimbus not found"));
-        String nimbusOwner = nimbus.getNimbusSpace().getUser().getUserDisplayName();
-
-        if(!user.getUserDisplayName().equals(nimbusOwner)) {
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)) {
             throw new ResourceOwnershipException("You are not the owner of this Nimbus");
         }
 
-        if (!quotaService.canUpload(nimbus.getNimbusSpace().getId())) {
+        if (!quotaService.canUpload(nimbusSpace.getId())) {
             throw new UploadQuotaException("Upload quota exceeded");
         }
 
-        if(!quotaService.canUploadByStorage(nimbus.getNimbusSpace().getId(), file.getSize())) {
+        if(!quotaService.canUploadByStorage(nimbusSpace.getId(), file.getSize())) {
             throw new UploadQuotaException("Max Storage exceeded");
         }
 
         String dropKey = "user_"+user.getId()+"/nimbus_"+nimbus.getId()+"/"+ UUID.randomUUID()+"-"+file.getOriginalFilename();
 
-        try {//Store Drop File
-            fileStorageService.saveDropFile(dropKey, file);
-        }catch (IOException e){
-            throw new RuntimeException("Failed to save drop file", e);
-        }
+        fileStorageService.saveDropFile(dropKey, file);
+
         //Create Drop entity
         Drop drop = new Drop();
         drop.setDropName(file.getOriginalFilename());
@@ -92,24 +89,23 @@ public class DropService {
 
         //Save Nimbus and Drop
         nimbus.getDrops().add(drop);
-        nimbusRepository.save(nimbus);
+
+        userRepository.save(user);
 
         //Register upload for quota tracking
-        quotaService.registerUpload(nimbus.getNimbusSpace().getId(), file.getSize());
+        quotaService.registerUpload(nimbusSpace.getId(), file.getSize());
 
-        return modelMapper.map(drop, DropResponse.class);
+        return drop;
     }
 
     public void deleteDrop(Long dropId, String email) throws IOException {
-        Drop drop = dropRepository.findById(dropId).orElseThrow(() -> new NimbusNotFoundException("Drop not found"));
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new NimbusNotFoundException(email));
-        String dropOwnerUserDisplayName = drop.getNimbus().getNimbusSpace().getUser().getUserDisplayName();
+        User user = entityFetcher.getUserByEmail(email);
+        Drop drop = entityFetcher.getDropById(dropId);
+        NimbusSpace nimbusSpace = user.getNimbusSpace();
 
-        if(!userDisplayName.equals(dropOwnerUserDisplayName)){
+        if(CheckOwnerUtil.checkDropOwnerValidity(drop, user)){
             throw new ResourceOwnershipException("You are not allowed to delete this drop");
         }
-
-        NimbusSpace nimbusSpace = drop.getNimbus().getNimbusSpace();
 
         String dropKey = drop.getDropKey();
 
@@ -123,40 +119,40 @@ public class DropService {
     }
 
     public Resource openDrop(Long dropId, String email) throws MalformedURLException {
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new NimbusNotFoundException(email));
-        Drop drop = dropRepository.findById(dropId).orElseThrow(() -> new NimbusNotFoundException("Drop not found"));
-        String dropOwnerUserDisplayName = drop.getNimbus().getNimbusSpace().getUser().getUserDisplayName();
-        Long nimbusSpaceId = drop.getNimbus().getNimbusSpace().getId();
-        if(!userDisplayName.equals(dropOwnerUserDisplayName)){
+        User user = entityFetcher.getUserByEmail(email);
+        Drop drop = entityFetcher.getDropById(dropId);
+        NimbusSpace nimbusSpace = user.getNimbusSpace();
+
+        if(CheckOwnerUtil.checkDropOwnerValidity(drop, user)){
             throw new ResourceOwnershipException("You are not allowed to access this drop");
         }
 
-        if(!quotaService.canView(nimbusSpaceId)) {
+        if(!quotaService.canView(nimbusSpace.getId())) {
             throw new UploadQuotaException("Maximum view for this drop exceeded");
         }
 
         String dropKey = drop.getDropKey();
 
-        quotaService.registerView(nimbusSpaceId);
+        quotaService.registerView(nimbusSpace.getId());
 
         return fileStorageService.openDropFile(dropKey);
     }
 
 
-    public Resource downloadDropFile(String dropKey, String email, Long userId) throws IOException {
+    public Resource downloadDropFile(String dropKey, String email, Long nimbusId) throws IOException {
+        User user = entityFetcher.getUserByEmail(email);
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
+        NimbusSpace nimbusSpace = user.getNimbusSpace();
 
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new NimbusNotFoundException(email));
-        User user = userRepository.findById(userId).orElseThrow(() -> new NimbusNotFoundException("User not found"));
-        Long nimbusSpaceId = user.getNimbusSpace().getId();
-        if(!user.getUserDisplayName().equals(userDisplayName)){
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)){
             throw new ResourceOwnershipException("You are not allowed to download this drop");
         }
 
-        if(!quotaService.canDownload(nimbusSpaceId)) {
+        if(!quotaService.canDownload(nimbusSpace.getId())) {
             throw new UploadQuotaException("Maximum download for this drop exceeded");
         }
 
-        quotaService.registerDownload(nimbusSpaceId);
+        quotaService.registerDownload(nimbusSpace.getId());
 
         return fileStorageService.dowloadDropFile(dropKey);
     }

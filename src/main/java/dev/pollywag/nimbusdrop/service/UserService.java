@@ -6,10 +6,12 @@ import dev.pollywag.nimbusdrop.entity.Nimbus;
 import dev.pollywag.nimbusdrop.entity.TokenType;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.entity.VerificationToken;
+import dev.pollywag.nimbusdrop.exception.InvalidPasswordException;
 import dev.pollywag.nimbusdrop.exception.ResourceOwnershipException;
 import dev.pollywag.nimbusdrop.repository.NimbusRepository;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
 import dev.pollywag.nimbusdrop.repository.VerificationTokenRepository;
+import jakarta.persistence.EntityManager;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,65 +26,67 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final NimbusRepository nimbusRepository;
-    public UserService(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder,
-                       EmailService emailService, NimbusRepository nimbusRepository) {
+    private final EntityFetcher entityFetcher;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       EmailService emailService, NimbusRepository nimbusRepository, EntityFetcher entityFetcher) {
         this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.nimbusRepository = nimbusRepository;
+        this.entityFetcher = entityFetcher;
     }
 
-    public UserResponse changeUsername(Long userId, String newUsername, String email) {
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public User changeUsername(String newUsername, String email) {
+        // Fetch the authenticated user
+        User user = entityFetcher.getUserByEmail(email);
 
-        if(!user.getUserDisplayName().equals(userDisplayName)) {
-            throw new ResourceOwnershipException("You are not allowed to change the username of the user");
-        }
-
+        //Set the new Username
         user.setUsername(newUsername);
-        user= userRepository.save(user);
 
-        return modelMapper.map(user, UserResponse.class);
+
+        return userRepository.save(user);
     }
 
-    public String changePassword(Long userId, String newPassword, String oldPassword, String email) {
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public void changePassword(String newPassword, String oldPassword, String email) {
+        // Fetch the authenticated user
+        User user = entityFetcher.getUserByEmail(email);
 
-        if(!user.getUserDisplayName().equals(userDisplayName)) {
-            throw new ResourceOwnershipException("You are not allowed to change the password of the user");
-        }
-
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        // Validate the old password
+        String currentPassword = user.getPassword();
+        if (!passwordEncoder.matches(oldPassword, currentPassword)) {
             throw new IllegalArgumentException("Old password does not match");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        // Encode and set the new password
+        String updatedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(updatedPassword);
 
-        return "Password changed successfully";
+
+        userRepository.save(user);
     }
 
-    public String changeEmail(Long userId, String newEmail, String password, String email) {
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(!user.getUserDisplayName().equals(userDisplayName)) {
-            throw new ResourceOwnershipException("You are not allowed to change the email of the user");
+    public void changeEmail(String newEmail, String password, String email) {
+        // Fetch the authenticated user
+        User user = entityFetcher.getUserByEmail(email);
+
+        // Validate the password
+        String currentPassword = user.getPassword();
+        if (!passwordEncoder.matches(password, currentPassword)) {
+            throw new InvalidPasswordException("Password does not match");
         }
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Password does not match");
-        }
-
+        //Generate a unique-token for email change verification
         String token = UUID.randomUUID().toString();
+
+        //Set token expiry for this verification
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+
+        //Build and set Verification Entity
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(token);
         verificationToken.setUser(user);
@@ -90,47 +94,46 @@ public class UserService {
         verificationToken.setNewEmail(newEmail);
         verificationToken.setType(TokenType.EMAIL_CHANGE);
 
+        //Add the new verification in user VerificationToken list
         user.getVerificationTokens().add(verificationToken);
 
-        userRepository.save(user);
-
+        //Send verification email to the new email address user set
         emailService.sendConfirmationNewEmail(newEmail, token);
 
-        return "Please check your email to confirm your email.";
-
+        userRepository.save(user);
     }
 
-    public String deleteToken(Long userId, String email) {
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public void deleteToken(String email) {
+        // Fetch the authenticated user
+        User user = entityFetcher.getUserByEmail(email);
 
-        if(!user.getUserDisplayName().equals(userDisplayName)) {
-            throw new ResourceOwnershipException("You are not allowed to get code from this user");
-        }
+        //Generate a random number token for deletion verification
         String token = String.format("%06d", new Random().nextInt(999999));
-        LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+
+        //Set token expiry for this verification
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(2);
+
+        //Build and set Verification Entity
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(token);
         verificationToken.setUser(user);
         verificationToken.setExpiryDate(expiry);
         verificationToken.setType(TokenType.DELETE_ACCOUNT);
+
+        //Add the new verification in user VerificationToken list
         user.getVerificationTokens().add(verificationToken);
-        userRepository.save(user);
+
+        //Send verification token code to user email address
         emailService.sendTokenCodeForDeletion(email, token);
 
-        return "Check your email for the code";
+        userRepository.save(user);
     }
 
-    public List<Nimbus> findAllNimbusByUserId(Long userId, String email) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public List<Nimbus> findAllNimbusByUserId(String email) {
+        // Fetch the authenticated user
+        User user = entityFetcher.getUserByEmail(email);
+        Long userId = user.getId();
 
-        if(!user.getEmail().equals(email)) {
-            throw new ResourceOwnershipException("You are not allowed to get nimbus for this user");
-        }
-
-        Long nimbusSpaceId = user.getNimbusSpace().getId();
-
-        return nimbusRepository.findByNimbusSpaceId(nimbusSpaceId);
-
+        return nimbusRepository.findByUserId(userId);
     }
 }

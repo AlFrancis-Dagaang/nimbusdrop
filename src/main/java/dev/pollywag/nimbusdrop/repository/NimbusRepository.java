@@ -13,5 +13,5 @@ import java.util.Optional;
 @Repository
 public interface NimbusRepository extends JpaRepository <Nimbus, Long> {
     Optional<Nimbus> findNimbusById(Long id);
-    List<Nimbus> findByNimbusSpaceId(Long id);
+    List<Nimbus> findByUserId(Long id);
 }

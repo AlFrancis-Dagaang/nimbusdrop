@@ -4,6 +4,7 @@ import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
+import dev.pollywag.nimbusdrop.entity.Role;
 import dev.pollywag.nimbusdrop.service.AuthService;
 import dev.pollywag.nimbusdrop.service.VerificationService;
 import jakarta.validation.Valid;
@@ -26,13 +27,23 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<String>> signup(@Valid @RequestBody SignupRequest request) {
-        String response = authService.signup(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        String email = request.getEmail();
+        String password = request.getPassword();
+        String username = request.getUsername();
+        Role role = request.getRole();
+
+        authService.signup(email, username, password, role);
+
+        return ResponseEntity.ok(ApiResponse.success("Please check your email to confirm your account."));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = authService.authenticate(request);
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        AuthResponse response = authService.authenticate(email, password);
+
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
@@ -50,13 +61,14 @@ public class AuthController {
 
     @GetMapping("/confirm")
     public ResponseEntity<ApiResponse<String>> confirmSignupVerification(@Param("token") String token) {
-        String response = verificationService.signUpConfirmation(token);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        verificationService.signUpConfirmation(token);
+        return ResponseEntity.ok(ApiResponse.success("Successfully confirmed account"));
     }
 
     @GetMapping("/email")
     public ResponseEntity<ApiResponse<String>> confirmEmailVerification(@Param("token") String token) {
-        String response = verificationService.newEmailConfirmation(token);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        verificationService.newEmailConfirmation(token);
+        return ResponseEntity.ok(ApiResponse.success("Email confirmed. You can now log in to your new email."));
     }
+
 }

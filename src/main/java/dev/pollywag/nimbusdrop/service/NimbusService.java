@@ -6,21 +6,11 @@ import dev.pollywag.nimbusdrop.exception.DropNotFoundException;
 import dev.pollywag.nimbusdrop.exception.NimbusNotFoundException;
 import dev.pollywag.nimbusdrop.exception.ResourceOwnershipException;
 import dev.pollywag.nimbusdrop.repository.*;
-import org.apache.commons.io.FileUtils;
+import dev.pollywag.nimbusdrop.util.CheckOwnerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.IIOException;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.Principal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -35,10 +25,11 @@ public class NimbusService {
     private final DropRepository dropRepository;
     private final NimbusSpaceRepository nimbusSpaceRepository;
     private final DropShareLinkRepository dropShareLinkRepository;
+    private final EntityFetcher entityFetcher;
 
-    public NimbusService(NimbusSpaceRepository nimbusSpaceRepository,DropRepository dropRepository,NimbusRepository nimbusRepository,
-                         UserRepository userRepository, ModelMapper modelMapper,
-                         FileStorageService fileStorageService, DropShareLinkRepository dropShareLinkRepository) {
+    public NimbusService(NimbusSpaceRepository nimbusSpaceRepository, DropRepository dropRepository, NimbusRepository nimbusRepository,
+                         UserRepository userRepository, ModelMapper modelMapper, EntityFetcher entityFetcher, FileStorageService fileStorageService
+                         , DropShareLinkRepository dropShareLinkRepository) {
         this.nimbusRepository = nimbusRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -46,44 +37,92 @@ public class NimbusService {
         this.dropRepository = dropRepository;
         this.nimbusSpaceRepository = nimbusSpaceRepository;
         this.dropShareLinkRepository = dropShareLinkRepository;
+        this.entityFetcher = entityFetcher;
     }
 
-    public NimbusResponse createNimbus(String nimbusName, String email) {
-         User user = userRepository.findByEmail(email).orElseThrow( () -> new UsernameNotFoundException("User not found: " + email));
-         Nimbus nimbus = new Nimbus(nimbusName, user.getNimbusSpace());
+    public Nimbus createNimbus(String nimbusName, String email) {
+         // Fetch authenticated user by email
+         User user = entityFetcher.getUserByEmail(email);
 
-         nimbusRepository.save(nimbus);
-         return modelMapper.map(nimbus, NimbusResponse.class);
+         // Fetch Nimbus by its ID
+         Nimbus nimbus = new Nimbus();
+         nimbus.setUser(user);
+         nimbus.setNimbusName(nimbusName);
+
+         return nimbusRepository.save(nimbus);
     }
 
-    public void deleteNimbus(Long id, String email){
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow( () -> new UsernameNotFoundException("Account not found: " + email));
-        Nimbus nimbus = nimbusRepository.findById(id).orElseThrow( () -> new NimbusNotFoundException("Nimbus not found: " + id));
-        String nimbusOwnerUsername = nimbus.getNimbusSpace().getUser().getUserDisplayName();
-        NimbusSpace nimbusSpace = nimbus.getNimbusSpace();
+    public Nimbus getNimbusById(Long nimbusId, String email) {
+        // Fetch authenticated user by email
+        User user = entityFetcher.getUserByEmail(email);
 
-        if(!userDisplayName.equals(nimbusOwnerUsername)){
+        // Fetch Nimbus by its ID
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
+
+        //Only the Nimbus owner can get this nimbus
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)) {
+            throw new ResourceOwnershipException("You are not allowed to get this nimbus");
+        }
+
+        return nimbus;
+    }
+
+    public List<Drop> getAllDropByNimbusId(Long nimbusId, String email) {
+        // Fetch authenticated user by email
+        User user = entityFetcher.getUserByEmail(email);
+
+        // Fetch Nimbus by its ID
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
+
+        //Check the Ownership
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)){
+            throw new ResourceOwnershipException("You are not allowed to get this drops from this nimbus");
+        }
+
+
+        return dropRepository.findByNimbusId(nimbusId);
+    }
+
+    public void deleteNimbus(Long nimbusId, String email){
+        // Fetch authenticated user by email
+        User user = entityFetcher.getUserByEmail(email);
+
+        // Fetch Nimbus by its ID
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
+
+        //Fetch the NimbusSpace of User
+        NimbusSpace nimbusSpace = user.getNimbusSpace();
+
+        //Check the Ownership
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)){
             throw new ResourceOwnershipException("You are not allowed to delete this nimbus");
         }
 
+        //Check if Nimbus is already empty
         if(!nimbus.getDrops().isEmpty()){
             throw new IllegalArgumentException("All Drops must be empty for this nimbus before deletion");
         }
 
-        String nimbusPath = ("user_" + nimbusSpace.getUser().getId() + "/nimbus_" + nimbus.getId());
+        //Path of Nimbus Folder to be deleted
+        String nimbusPath = ("user_" + user.getId() + "/nimbus_" + nimbus.getId());
 
+        //Service to delete the folder of nimbus by path
         fileStorageService.deleteNimbusDirectory(nimbusPath);
 
         nimbusRepository.delete(nimbus);
     }
 
-    public String emptyNimbus(Long id, String email){
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow( () -> new UsernameNotFoundException("Account not found: " + email));
-        Nimbus nimbus = nimbusRepository.findById(id).orElseThrow( () -> new NimbusNotFoundException("Nimbus not found: " + id));
-        NimbusSpace nimbusSpace = nimbus.getNimbusSpace();
-        String nimbusOwnerUsername =nimbus.getNimbusSpace().getUser().getUserDisplayName();
+    public void emptyNimbus(Long nimbusId, String email){
+        // Fetch authenticated user by email
+        User user = entityFetcher.getUserByEmail(email);
 
-        if(!userDisplayName.equals(nimbusOwnerUsername)){
+        // Fetch Nimbus by its ID
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
+
+        //Fetch the NimbusSpace of User
+        NimbusSpace nimbusSpace = user.getNimbusSpace();
+
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)){
             throw new ResourceOwnershipException("You are not allowed to empty this nimbus");
         }
 
@@ -91,43 +130,38 @@ public class NimbusService {
             throw new IllegalArgumentException("This nimbus is already empty");
         }
 
-        String nimbusPath = ("user_" + nimbusSpace.getUser().getId() + "/nimbus_" + nimbus.getId());
+        String nimbusPath = ("user_" + user.getId() + "/nimbus_" + nimbus.getId());
 
         fileStorageService.emptyNimbusDirectory(nimbusPath);
 
         nimbusSpace.setUsedStorageBytes(0L);
 
         nimbusSpaceRepository.save(nimbusSpace);
-        int totalOfDropsDeleted = dropRepository.deleteAllByNimbusId(id);
 
-        return totalOfDropsDeleted + " drops were deleted";
+        dropRepository.deleteAllByNimbusId(nimbusId);
     }
 
-    public NimbusResponse updateNimbusName(Long id, String newNimbusName, String email){
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow( () -> new UsernameNotFoundException("Account not found: " + email));
-        Nimbus nimbus = nimbusRepository.findById(id).orElseThrow( () -> new NimbusNotFoundException("Nimbus not found: " + id));
+    public Nimbus updateNimbusName(Long nimbusId, String newNimbusName, String email){
+        // Fetch authenticated user by email
+        User user = entityFetcher.getUserByEmail(email);
 
-        String nimbusOwnerUsername =nimbus.getNimbusSpace().getUser().getUserDisplayName();
+        // Fetch Nimbus by its ID
+        Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
 
-        if(!userDisplayName.equals(nimbusOwnerUsername)){
+        if(CheckOwnerUtil.checkNimbusOwnerValidity(nimbus, user)){
             throw new ResourceOwnershipException("You are not allowed to modify this nimbus");
         }
 
         nimbus.setNimbusName(newNimbusName);
-        nimbus = nimbusRepository.save(nimbus);
 
-        return modelMapper.map(nimbus, NimbusResponse.class);
+        return nimbusRepository.save(nimbus);
     }
 
     public String createShareLink(Long dropId, String email) {
-
-        String userDisplayName = userRepository.findUserDisplayNameByEmail(email).orElseThrow(() -> new DropNotFoundException(email));
-
+        User user = userRepository.findByEmail(email).orElseThrow( () -> new UsernameNotFoundException("User not found: " + email));
         Drop drop = dropRepository.findById(dropId).orElseThrow(()->new DropNotFoundException("Drop not found"));
 
-        String dropUserDisplayName = drop.getNimbus().getNimbusSpace().getUser().getUserDisplayName();
-
-        if(!userDisplayName.equals(dropUserDisplayName)) {
+        if(CheckOwnerUtil.checkDropOwnerValidity(drop, user)) {
             throw new ResourceOwnershipException("You cant create a shared link for this drop");
         }
 
@@ -142,11 +176,4 @@ public class NimbusService {
 
         return "http://localhost:8085/public/" + token;
     }
-
-
-
-
-
-
-
 }

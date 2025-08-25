@@ -34,6 +34,16 @@ public class UserController {
     }
 
 
+    @GetMapping("/info")
+    public ResponseEntity<ApiResponse<UserResponse>> getUser(Principal principal) {
+        String email = principal.getName();
+        User user = userService.getUser(email);
+        UserResponse response = modelMapper.map(user, UserResponse.class);
+
+        return ResponseEntity.ok(ApiResponse.success("Successfully get the user", response));
+    }
+
+
     @PostMapping("/username")
     public ResponseEntity<ApiResponse<UserResponse>> changeUsername(@Valid @RequestBody ChangeUsernameRequest request, Principal principal) {
         String newUsername = request.getNewUsername();

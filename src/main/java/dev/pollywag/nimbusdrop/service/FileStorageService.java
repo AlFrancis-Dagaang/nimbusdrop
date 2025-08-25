@@ -81,7 +81,7 @@ public class FileStorageService {
         }
     }
 
-    public Resource dowloadDropFile(String dropKey) throws MalformedURLException {
+    public Resource downloadDropFile(String dropKey) throws MalformedURLException {
         Path filePath = STORAGE_ROOT.resolve(dropKey).normalize();
 
         if (!Files.exists(filePath)) {

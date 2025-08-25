@@ -1,14 +1,12 @@
 package dev.pollywag.nimbusdrop.service;
 
-import dev.pollywag.nimbusdrop.dto.respondeDTO.DropResponse;
 import dev.pollywag.nimbusdrop.entity.Drop;
 import dev.pollywag.nimbusdrop.entity.Nimbus;
 import dev.pollywag.nimbusdrop.entity.NimbusSpace;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.exception.DropNotFoundException;
-import dev.pollywag.nimbusdrop.exception.NimbusNotFoundException;
 import dev.pollywag.nimbusdrop.exception.ResourceOwnershipException;
-import dev.pollywag.nimbusdrop.exception.UploadQuotaException;
+import dev.pollywag.nimbusdrop.exception.ExceededQuotaException;
 import dev.pollywag.nimbusdrop.repository.DropRepository;
 import dev.pollywag.nimbusdrop.repository.NimbusRepository;
 import dev.pollywag.nimbusdrop.repository.NimbusSpaceRepository;
@@ -16,16 +14,11 @@ import dev.pollywag.nimbusdrop.repository.UserRepository;
 import dev.pollywag.nimbusdrop.util.CheckOwnerUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -53,8 +46,15 @@ public class DropService {
         this.entityFetcher = entityFetcher;
     }
 
-    public Drop getDropById(Long dropId) {
-        return dropRepository.findById(dropId).orElseThrow(()-> new DropNotFoundException("Drop not found"));
+    public Drop getDropById(Long dropId, String email) {
+        User user = entityFetcher.getUserByEmail(email);
+        Drop drop = entityFetcher.getDropById(dropId);
+
+        if(CheckOwnerUtil.checkDropOwnerValidity(drop, user)) {
+            throw new ResourceOwnershipException("You are not the owner of this drop");
+        }
+
+        return drop;
     }
 
     public Drop uploadDrop(Long nimbusId, MultipartFile file, String email) throws IOException {
@@ -67,11 +67,11 @@ public class DropService {
         }
 
         if (!quotaService.canUpload(nimbusSpace.getId())) {
-            throw new UploadQuotaException("Upload quota exceeded");
+            throw new ExceededQuotaException("Upload quota exceeded");
         }
 
         if(!quotaService.canUploadByStorage(nimbusSpace.getId(), file.getSize())) {
-            throw new UploadQuotaException("Max Storage exceeded");
+            throw new ExceededQuotaException("Max Storage exceeded");
         }
 
         String dropKey = "user_"+user.getId()+"/nimbus_"+nimbus.getId()+"/"+ UUID.randomUUID()+"-"+file.getOriginalFilename();
@@ -128,7 +128,7 @@ public class DropService {
         }
 
         if(!quotaService.canView(nimbusSpace.getId())) {
-            throw new UploadQuotaException("Maximum view for this drop exceeded");
+            throw new ExceededQuotaException("Maximum view for this drop exceeded");
         }
 
         String dropKey = drop.getDropKey();
@@ -149,11 +149,11 @@ public class DropService {
         }
 
         if(!quotaService.canDownload(nimbusSpace.getId())) {
-            throw new UploadQuotaException("Maximum download for this drop exceeded");
+            throw new ExceededQuotaException("Maximum download for this drop exceeded");
         }
 
         quotaService.registerDownload(nimbusSpace.getId());
 
-        return fileStorageService.dowloadDropFile(dropKey);
+        return fileStorageService.downloadDropFile(dropKey);
     }
 }

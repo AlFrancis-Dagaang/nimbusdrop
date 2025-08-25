@@ -3,19 +3,27 @@ package dev.pollywag.nimbusdrop.dto.respondeDTO;
 import dev.pollywag.nimbusdrop.entity.Role;
 
 public class UserResponse {
-
-    private String username;
+    private Long id;
+    private String userDisplayName;
     private String email;
     private Role role;
 
     public UserResponse() { super();}
 
-    public String getUsername() {
-        return username;
+    public String getUserDisplayName() {
+        return userDisplayName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUserDisplayName(String userDisplayName) {
+        this.userDisplayName = userDisplayName;
     }
 
     public String getEmail() {

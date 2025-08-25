@@ -1,10 +1,12 @@
 package dev.pollywag.nimbusdrop.service;
 
 import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
+import dev.pollywag.nimbusdrop.entity.TokenType;
 import dev.pollywag.nimbusdrop.entity.User;
 import dev.pollywag.nimbusdrop.entity.VerificationToken;
 import dev.pollywag.nimbusdrop.exception.InvalidVerificationTokenException;
 import dev.pollywag.nimbusdrop.exception.ResourceOwnershipException;
+import dev.pollywag.nimbusdrop.exception.VerificationNotFoundException;
 import dev.pollywag.nimbusdrop.repository.UserRepository;
 import dev.pollywag.nimbusdrop.repository.VerificationTokenRepository;
 import dev.pollywag.nimbusdrop.util.ValidatingVerificationTokenUtil;
@@ -19,13 +21,15 @@ public class VerificationService {
     private final VerificationTokenRepository verificationTokenRepository;
     private final FileStorageService fileStorageService;
     private final EntityFetcher entityFetcher;
+    private final EmailService emailService;
 
     public VerificationService(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository
-            , FileStorageService fileStorageService, EntityFetcher entityFetcher) {
+            , FileStorageService fileStorageService, EntityFetcher entityFetcher, EmailService emailService) {
         this.userRepository = userRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.fileStorageService = fileStorageService;
         this.entityFetcher = entityFetcher;
+        this.emailService = emailService;
     }
 
     public void signUpConfirmation(String token){
@@ -43,7 +47,19 @@ public class VerificationService {
         user.setEnabled(true);
 
         userRepository.save(user);
+    }
 
+    public void resendEmailVerificationToken(String email){
+        User user = entityFetcher.getUserByEmail(email);
+        VerificationToken userVerificationToken = user.getVerificationTokens()
+                .stream()
+                .filter(token -> token.getType().equals(TokenType.SIGNUP_CONFIRM))
+                .findFirst()
+                .orElseThrow(()-> new VerificationNotFoundException("Verification token not found for this email: " + email));
+
+        String token = userVerificationToken.getToken();
+
+        emailService.sendConfirmationEmail(email, token);
     }
 
     public void newEmailConfirmation(String token){

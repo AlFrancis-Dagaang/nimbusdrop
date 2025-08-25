@@ -3,8 +3,7 @@ package dev.pollywag.nimbusdrop.service;
 import dev.pollywag.nimbusdrop.entity.Drop;
 import dev.pollywag.nimbusdrop.entity.DropSharedLink;
 import dev.pollywag.nimbusdrop.entity.NimbusSpace;
-import dev.pollywag.nimbusdrop.exception.DropNotFoundException;
-import dev.pollywag.nimbusdrop.exception.UploadQuotaException;
+import dev.pollywag.nimbusdrop.exception.ExceededQuotaException;
 import dev.pollywag.nimbusdrop.repository.DropRepository;
 import dev.pollywag.nimbusdrop.repository.DropShareLinkRepository;
 import org.springframework.core.io.Resource;
@@ -44,7 +43,7 @@ public class DropSharedLinkService {
         NimbusSpace nimbusSpace = drop.getNimbus().getUser().getNimbusSpace();
 
         if(!quotaService.canDownload(nimbusSpace.getId())){
-            throw new UploadQuotaException("Download quota exceeded");
+            throw new ExceededQuotaException("Download quota exceeded");
         }
 
         String dropKey = drop.getDropKey();

@@ -1,5 +1,6 @@
 package dev.pollywag.nimbusdrop.controller;
 
+import dev.pollywag.nimbusdrop.dto.requestDTO.ResendVerificationEmailRequest;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
@@ -69,6 +70,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> confirmEmailVerification(@Param("token") String token) {
         verificationService.newEmailConfirmation(token);
         return ResponseEntity.ok(ApiResponse.success("Email confirmed. You can now log in to your new email."));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<ApiResponse<?>> resendVerificationEmail(@RequestBody ResendVerificationEmailRequest request) {
+        String email = request.getEmail();
+        verificationService.resendEmailVerificationToken(email);
+        return ResponseEntity.ok(ApiResponse.success("Resend verification email successful"));
     }
 
 }

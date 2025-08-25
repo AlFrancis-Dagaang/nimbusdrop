@@ -76,18 +76,7 @@ public class NimbusController {
         List<DropResponse> dropResponseList = dropList.stream()
                 .map(drop -> {
                     DropResponse response = modelMapper.map(drop, DropResponse.class);
-                    Long userId = drop.getNimbus().getUser().getId();
-                    Long nimbusId = drop.getNimbus().getId();
-                    String fileName = drop.getDropKey(); // or extract the last part if dropKey has path
-
-                    // If dropKey has the full name like "user_1/nimbus_1/f1a555f0-...png"
-                    // we can extract the fileName only
-                    String[] parts = fileName.split("/");
-                    fileName = parts[parts.length - 1];
-
-                    String url = "/drop/download/" + userId + "/" + nimbusId + "/" + fileName;
-                    response.setUrl(url);
-
+                    setDropUrl(response, drop);
                     return response;
                 })
                 .toList();
@@ -121,10 +110,21 @@ public class NimbusController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Successfully created the drop", response));
     }
 
+    @GetMapping("/drop/{id}")
+    public ResponseEntity<ApiResponse<DropResponse>> getDrop (@PathVariable Long id, Principal principal) {
+        String email = principal.getName();
+        Drop drop = dropService.getDropById(id, email);
+        DropResponse response= modelMapper.map(drop, DropResponse.class);
+        setDropUrl(response, drop);
+        return ResponseEntity.ok(ApiResponse.success("Drop found", response));
+    }
+
     @GetMapping("/drop/{dropId}/open")
     public ResponseEntity<Resource> openDrop(@PathVariable Long dropId, Principal principal) throws MalformedURLException {
-        Drop drop = dropService.getDropById(dropId);
-        Resource resource = dropService.openDrop(dropId, principal.getName());
+        String email = principal.getName();
+
+        Drop drop = dropService.getDropById(dropId, email);
+        Resource resource = dropService.openDrop(dropId, email);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(drop.getContentType()))
@@ -160,5 +160,17 @@ public class NimbusController {
     public ResponseEntity<ApiResponse<?>>createDropSharedLink(@PathVariable Long dropId, Principal principal) {
         String response = nimbusService.createShareLink(dropId, principal.getName());
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    public void setDropUrl(DropResponse response, Drop drop){
+        Long userId = drop.getNimbus().getUser().getId();
+        Long nimbusId = drop.getNimbus().getId();
+        String fileName = drop.getDropKey();
+
+        String[] parts = fileName.split("/");
+        fileName = parts[parts.length - 1];
+
+        String url = "/drop/download/" + userId + "/" + nimbusId + "/" + fileName;
+        response.setUrl(url);
     }
 }

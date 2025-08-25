@@ -31,6 +31,7 @@ public class UserService {
     private final NimbusRepository nimbusRepository;
     private final EntityFetcher entityFetcher;
 
+
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        EmailService emailService, NimbusRepository nimbusRepository, EntityFetcher entityFetcher) {
         this.userRepository = userRepository;
@@ -38,6 +39,10 @@ public class UserService {
         this.emailService = emailService;
         this.nimbusRepository = nimbusRepository;
         this.entityFetcher = entityFetcher;
+    }
+
+    public User getUser(String email){
+        return entityFetcher.getUserByEmail(email);
     }
 
     public User changeUsername(String newUsername, String email) {

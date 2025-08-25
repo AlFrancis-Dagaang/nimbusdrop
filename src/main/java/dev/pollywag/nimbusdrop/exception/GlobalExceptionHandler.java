@@ -84,8 +84,8 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(UploadQuotaException.class)
-    public ResponseEntity<ApiResponse<Object>> handleUploadQuotaException(UploadQuotaException ex) {
+    @ExceptionHandler(ExceededQuotaException.class)
+    public ResponseEntity<ApiResponse<Object>> handleUploadQuotaException(ExceededQuotaException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));

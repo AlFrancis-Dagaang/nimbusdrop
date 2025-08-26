@@ -129,7 +129,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(VerificationNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleInvalidPasswordException(VerificationNotFoundException ex) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 

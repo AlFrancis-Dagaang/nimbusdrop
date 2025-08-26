@@ -1,12 +1,14 @@
 package dev.pollywag.nimbusdrop.controller;
 
 import dev.pollywag.nimbusdrop.dto.requestDTO.ResendVerificationEmailRequest;
+import dev.pollywag.nimbusdrop.dto.requestDTO.PasswordForgotRequest;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.ApiResponse;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
 import dev.pollywag.nimbusdrop.entity.Role;
 import dev.pollywag.nimbusdrop.service.AuthService;
+import dev.pollywag.nimbusdrop.service.UserService;
 import dev.pollywag.nimbusdrop.service.VerificationService;
 import jakarta.validation.Valid;
 import org.springframework.data.repository.query.Param;
@@ -20,10 +22,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final VerificationService verificationService;
+    private final UserService userService;
 
-    public AuthController(AuthService authService, VerificationService verificationService) {
+    public AuthController(AuthService authService, VerificationService verificationService, UserService userService) {
         this.authService = authService;
         this.verificationService = verificationService;
+        this.userService = userService;
     }
 
     @PostMapping("/signup")
@@ -55,19 +59,15 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout() {
-        return ResponseEntity.ok(ApiResponse.success("Logout successful", "Please remove the token from client storage"));
-    }
 
     @GetMapping("/confirm")
-    public ResponseEntity<ApiResponse<String>> confirmSignupVerification(@Param("token") String token) {
-        verificationService.signUpConfirmation(token);
+    public ResponseEntity<ApiResponse<?>> confirmSignupVerification(@Param("token") String token) {
+        authService.signUpConfirmation(token);
         return ResponseEntity.ok(ApiResponse.success("Successfully confirmed account"));
     }
 
-    @GetMapping("/email")
-    public ResponseEntity<ApiResponse<String>> confirmEmailVerification(@Param("token") String token) {
+    @GetMapping("/new-email")
+    public ResponseEntity<ApiResponse<String>> confirmNewEmailVerification(@Param("token") String token) {
         verificationService.newEmailConfirmation(token);
         return ResponseEntity.ok(ApiResponse.success("Email confirmed. You can now log in to your new email."));
     }
@@ -75,8 +75,27 @@ public class AuthController {
     @PostMapping("/resend-verification")
     public ResponseEntity<ApiResponse<?>> resendVerificationEmail(@RequestBody ResendVerificationEmailRequest request) {
         String email = request.getEmail();
-        verificationService.resendEmailVerificationToken(email);
+        authService.resendEmailVerificationToken(email);
         return ResponseEntity.ok(ApiResponse.success("Resend verification email successful"));
     }
+
+    //---- PASSWORD-FORGOT API SECTION -----//
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> sendTokenCodeForPasswordForgot(@RequestBody PasswordForgotRequest request){
+        String email = request.getEmail();
+        authService.createForgotPasswordToken(email);
+        return ResponseEntity.ok(ApiResponse.success("Please check your email. A verification link was sent"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordForgotRequest request) {
+        String token = request.getToken();
+        String newPassword = request.getNewPassword();
+        authService.setNewUserPassword(token, newPassword);
+        return ResponseEntity.ok(ApiResponse.success("Password reset successful"));
+    }
+
+
+
 
 }

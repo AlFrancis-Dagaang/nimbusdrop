@@ -1,9 +1,6 @@
 package dev.pollywag.nimbusdrop.service;
 
-import dev.pollywag.nimbusdrop.entity.Drop;
-import dev.pollywag.nimbusdrop.entity.Nimbus;
-import dev.pollywag.nimbusdrop.entity.User;
-import dev.pollywag.nimbusdrop.entity.VerificationToken;
+import dev.pollywag.nimbusdrop.entity.*;
 import dev.pollywag.nimbusdrop.exception.DropNotFoundException;
 import dev.pollywag.nimbusdrop.exception.NimbusNotFoundException;
 import dev.pollywag.nimbusdrop.exception.VerificationNotFoundException;
@@ -36,6 +33,13 @@ public class EntityFetcher {
     public VerificationToken getVerificationTokenByToken(String token){
         return verificationTokenRepository.findByToken(token).orElseThrow(() -> new VerificationNotFoundException("Token not found"));
     }
+
+    public VerificationToken getVerificationTokenByUserIdAndType(Long userId, TokenType type){
+
+        return verificationTokenRepository.findByUserIdAndType(userId, type).orElseThrow(() -> new VerificationNotFoundException("Token not found"));
+    }
+
+
 
     public Nimbus getNimbusById(Long nimbusId){
         return  nimbusRepository.findById(nimbusId)

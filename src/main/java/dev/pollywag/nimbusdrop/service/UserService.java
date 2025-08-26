@@ -89,7 +89,7 @@ public class UserService {
         String token = UUID.randomUUID().toString();
 
         //Set token expiry for this verification
-        LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+        LocalDateTime expiry = LocalDateTime.now().plusDays(7);
 
         //Build and set Verification Entity
         VerificationToken verificationToken = new VerificationToken();
@@ -113,7 +113,7 @@ public class UserService {
         User user = entityFetcher.getUserByEmail(email);
 
         //Generate a random number token for deletion verification
-        String token = String.format("%06d", new Random().nextInt(999999));
+        String token = String.format("%06d", new Random().nextInt(1_000_000));
 
         //Set token expiry for this verification
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(2);

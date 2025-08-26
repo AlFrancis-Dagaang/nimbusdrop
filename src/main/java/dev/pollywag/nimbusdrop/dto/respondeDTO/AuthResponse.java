@@ -9,7 +9,7 @@ public class AuthResponse {
     private String accessToken;
     private String refreshToken;
     private String tokenType = "Bearer";
-    private UserInfo user;
+    private UserResponse user;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime expiresAt;
@@ -18,47 +18,19 @@ public class AuthResponse {
     public AuthResponse() {
     }
 
-    public AuthResponse(String accessToken, String refreshToken, UserInfo user, LocalDateTime expiresAt) {
+    public AuthResponse(String accessToken, String refreshToken, UserResponse userResponse, LocalDateTime expiresAt) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.user = user;
         this.expiresAt = expiresAt;
+        this.user = userResponse;
     }
 
-    public static class UserInfo {
-        private Long id;
-        private String email;
-        private String password;
-        private String role;
+    public UserResponse getUser() {
+        return user;
+    }
 
-        // Constructors
-        public UserInfo() {}
-
-        public UserInfo(Long id, String email, String password, String role) {
-            this.id = id;
-            this.email = email;
-            this.password = password;
-            this.role = role;
-        }
-
-        // Getters and Setters
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
-        public String getRole() { return role; }
-        public void setRole(String role) { this.role = role; }
-
+    public void setUser(UserResponse user) {
+        this.user = user;
     }
 
     public String getAccessToken() {
@@ -93,11 +65,5 @@ public class AuthResponse {
         this.expiresAt = expiresAt;
     }
 
-    public UserInfo getUser() {
-        return user;
-    }
 
-    public void setUser(UserInfo user) {
-        this.user = user;
-    }
 }

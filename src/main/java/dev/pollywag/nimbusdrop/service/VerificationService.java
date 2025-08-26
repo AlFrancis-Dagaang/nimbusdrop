@@ -32,35 +32,7 @@ public class VerificationService {
         this.emailService = emailService;
     }
 
-    public void signUpConfirmation(String token){
-        VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);
 
-        LocalDateTime expiryDate = verificationToken.getExpiryDate();
-        boolean isUsed = verificationToken.isUsed();
-
-        ValidatingVerificationTokenUtil.validateVerificationToken(expiryDate, isUsed);
-
-        String userEmail = verificationToken.getUser().getEmail();
-
-        User user = entityFetcher.getUserByEmail(userEmail);
-        verificationToken.setUsed(true);
-        user.setEnabled(true);
-
-        userRepository.save(user);
-    }
-
-    public void resendEmailVerificationToken(String email){
-        User user = entityFetcher.getUserByEmail(email);
-        VerificationToken userVerificationToken = user.getVerificationTokens()
-                .stream()
-                .filter(token -> token.getType().equals(TokenType.SIGNUP_CONFIRM))
-                .findFirst()
-                .orElseThrow(()-> new VerificationNotFoundException("Verification token not found for this email: " + email));
-
-        String token = userVerificationToken.getToken();
-
-        emailService.sendConfirmationEmail(email, token);
-    }
 
     public void newEmailConfirmation(String token){
         VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);

@@ -25,7 +25,7 @@ public class EmailService {
     }
 
     public void sendConfirmationNewEmail(String toEmail, String token) {
-        String confirmUrl = "http://localhost:8085/auth/email?token=" + token;
+        String confirmUrl = "http://localhost:8085/auth/new-email?token=" + token;
 
         message.setTo(toEmail);
         message.setSubject("Confirm your email");
@@ -52,6 +52,30 @@ public class EmailService {
         message.setText(body);
         mailSender.send(message);
     }
+
+    public void sendForgotPasswordLink(String toEmail, String token) {
+        message.setTo(toEmail);
+        message.setSubject("Reset Your Password");
+
+        String resetUrl = String.format("http://localhost:8085/auth/reset-password?token=%s", token);
+
+        String body = String.format(
+                "Hello,\n\n" +
+                        "Click the link below to reset your password:\n\n" +
+                        "    %s\n\n" +
+                        "This link will expire in 10 minutes.\n\n" +
+                        "If you didn’t request a password reset, please ignore this email.\n\n" +
+                        "Thanks,\n" +
+                        "Nimbusdrop Team",
+                resetUrl
+        );
+
+        message.setText(body);
+        mailSender.send(message);
+    }
+
+
+
 
 
 

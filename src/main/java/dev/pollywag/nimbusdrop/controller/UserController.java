@@ -110,9 +110,4 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Retrieved all nimbus", responseList));
     }
 
-
-
-
-
-
 }

@@ -120,7 +120,7 @@ Content-Type: application/json
 
 {
     "email": "dabox81033@aperiol.com",
-    "password": "admin123"
+    "password": "user123"
 }
 ```
 

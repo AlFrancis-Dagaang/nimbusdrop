@@ -15,7 +15,7 @@ public class EmailService {
     }
 
     public void sendConfirmationEmail(String toEmail, String token) {
-        String confirmUrl = "http://localhost:8085/auth/confirm?token=" + token;
+        String confirmUrl = "http://localhost:5173/verification-success?token=" + token;
 
         message.setTo(toEmail);
         message.setSubject("Confirm your account");
@@ -57,7 +57,7 @@ public class EmailService {
         message.setTo(toEmail);
         message.setSubject("Reset Your Password");
 
-        String resetUrl = String.format("http://localhost:8085/auth/reset-password?token=%s", token);
+        String resetUrl = String.format("http://localhost:5173/reset-password?token=%s", token);
 
         String body = String.format(
                 "Hello,\n\n" +

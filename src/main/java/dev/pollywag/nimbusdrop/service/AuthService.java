@@ -3,6 +3,7 @@ package dev.pollywag.nimbusdrop.service;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponse;
 import dev.pollywag.nimbusdrop.dto.requestDTO.LoginRequest;
 import dev.pollywag.nimbusdrop.dto.requestDTO.SignupRequest;
+import dev.pollywag.nimbusdrop.dto.respondeDTO.AuthResponseHolder;
 import dev.pollywag.nimbusdrop.dto.respondeDTO.UserResponse;
 import dev.pollywag.nimbusdrop.entity.Role;
 import dev.pollywag.nimbusdrop.entity.TokenType;
@@ -86,7 +87,7 @@ public class AuthService {
         emailService.sendConfirmationEmail(user.getEmail(), token);
     }
 
-    public AuthResponse authenticate(String email, String password) {
+    public AuthResponseHolder authenticate(String email, String password) {
         // Authenticate user
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
 
@@ -101,10 +102,12 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        return createAuthResponse(user, accessToken, refreshToken);
+        AuthResponse authResponse = createAuthResponse(user, accessToken);
+
+        return new AuthResponseHolder(authResponse, refreshToken);
     }
 
-    public AuthResponse refreshToken(String refreshToken) {
+    public AuthResponseHolder refreshToken(String refreshToken) {
         if (!jwtService.isRefreshToken(refreshToken)) {
             throw new TokenRefreshException("Invalid refresh token");
         }
@@ -121,7 +124,9 @@ public class AuthService {
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        return createAuthResponse(user, newAccessToken, newRefreshToken);
+        AuthResponse authResponse = createAuthResponse(user, newAccessToken);
+
+        return new AuthResponseHolder(authResponse, newRefreshToken);
     }
 
     public void signUpConfirmation(String token){
@@ -202,24 +207,12 @@ public class AuthService {
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    private AuthResponse createAuthResponse(User user, String accessToken, String refreshToken) {
+    private AuthResponse createAuthResponse(User user, String accessToken) {
 
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);
 
         return new AuthResponse(
                 accessToken,
-                refreshToken,
                 userResponse,
                 jwtService.getExpirationTime()
         );

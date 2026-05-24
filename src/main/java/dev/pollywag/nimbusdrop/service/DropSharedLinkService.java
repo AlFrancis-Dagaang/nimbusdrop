@@ -30,6 +30,7 @@ public class DropSharedLinkService {
         this.entityFetcher = entityFetcher;
     }
 
+    // Resolves a public share token, verifies expiry and quota, then returns the file resource
     public Resource dropSharedLink(String token) throws MalformedURLException {
         DropSharedLink dropSharedLink =  dropShareLinkRepository.findByToken(token).orElseThrow(() -> new IllegalArgumentException("Invalid token"));
         LocalDateTime expiresAt = dropSharedLink.getExpiresAt();

@@ -43,6 +43,7 @@ public class AuthController {
         this.modelMapper = modelMapper;
     }
 
+    // Handles user signup and triggers email verification
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<String>> signup(@Valid @RequestBody SignupRequest request) {
         String email = request.getEmail();
@@ -55,6 +56,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Please check your email to confirm your account."));
     }
 
+    // Authenticates user credentials and issues access/refresh tokens
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         String email = request.getEmail();
@@ -80,6 +82,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Login successful", authResponse));
     }
 
+    // Uses the refresh token cookie to issue a new access and refresh token
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@CookieValue(name = "refreshToken", required = false)String refreshToken, HttpServletResponse response) {
         if (refreshToken == null) {
@@ -106,13 +109,14 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", authResponse));
     }
 
-
+    // Confirms signup using verification token from email
     @GetMapping("/confirm")
     public ResponseEntity<ApiResponse<?>> confirmSignupVerification(@Param("token") String token) {
         authService.signUpConfirmation(token);
         return ResponseEntity.ok(ApiResponse.success("Successfully confirmed account"));
     }
 
+    // Logs the user out by clearing the refresh token cookie
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(HttpServletResponse response) {
         // Clear refresh token cookie
@@ -129,12 +133,14 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
     }
 
+    // Confirms change of email address using a verification token
     @GetMapping("/new-email")
     public ResponseEntity<ApiResponse<String>> confirmNewEmailVerification(@Param("token") String token) {
         verificationService.newEmailConfirmation(token);
         return ResponseEntity.ok(ApiResponse.success("Email confirmed. You can now log in to your new email."));
     }
 
+    // Resends signup verification email to the given address
     @PostMapping("/resend-verification")
     public ResponseEntity<ApiResponse<?>> resendVerificationEmail(@RequestBody ResendVerificationEmailRequest request) {
         String email = request.getEmail();
@@ -142,7 +148,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Resend verification email successful"));
     }
 
-    //---- PASSWORD-FORGOT API SECTION -----//
+    // Starts password reset flow by sending a reset link email
     @PostMapping("/forgot-password")
     public ResponseEntity<?> sendTokenCodeForPasswordForgot(@RequestBody PasswordForgotRequest request){
         String email = request.getEmail();
@@ -150,6 +156,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Please check your email. A verification link was sent"));
     }
 
+    // Completes password reset using token and new password
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody PasswordForgotRequest request) {
         String token = request.getToken();
@@ -158,8 +165,4 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Password reset successful"));
     }
 
-    @GetMapping("/laugh")
-    public ResponseEntity<String> getMe(){
-        return ResponseEntity.ok("HHAAHHA");
-    }
 }

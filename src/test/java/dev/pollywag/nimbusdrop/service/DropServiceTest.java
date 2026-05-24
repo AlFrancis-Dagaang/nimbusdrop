@@ -77,10 +77,7 @@ class DropServiceTest {
         mockFile = mock(MultipartFile.class);
     }
 
-    // =====================================================================
     // getDropById()
-    // =====================================================================
-
     @Test
     void getDropById_shouldReturnDrop_whenOwnerRequests() {
         // Arrange
@@ -110,10 +107,7 @@ class DropServiceTest {
                 dropService.getDropById(1L, "other@example.com"));
     }
 
-    // =====================================================================
     // uploadDrop()
-    // =====================================================================
-
     @Test
     void uploadDrop_shouldSaveDrop_whenAllConditionsMet() throws IOException {
         // Arrange
@@ -187,10 +181,7 @@ class DropServiceTest {
         verify(fileStorageService, never()).saveDropFile(anyString(), any());
     }
 
-    // =====================================================================
     // deleteDrop()
-    // =====================================================================
-
     @Test
     void deleteDrop_shouldDeleteDrop_whenOwnerRequests() throws IOException {
         // Arrange
@@ -226,10 +217,7 @@ class DropServiceTest {
         verify(fileStorageService, never()).deleteDrop(anyString());
     }
 
-    // =====================================================================
     // openDrop()
-    // =====================================================================
-
     @Test
     void openDrop_shouldReturnResource_whenOwnerAndQuotaAvailable() throws MalformedURLException {
         // Arrange
@@ -280,10 +268,7 @@ class DropServiceTest {
         verify(fileStorageService, never()).openDropFile(anyString());
     }
 
-    // =====================================================================
     // downloadDropFile()
-    // =====================================================================
-
     @Test
     void downloadDropFile_shouldReturnResource_whenOwnerAndQuotaAvailable() throws IOException {
         // Arrange

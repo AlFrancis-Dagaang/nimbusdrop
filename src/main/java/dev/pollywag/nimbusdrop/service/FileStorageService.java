@@ -23,6 +23,7 @@ public class FileStorageService {
 
     public FileStorageService(){}
 
+    // Deletes the whole directory for a given Nimbus (including all its files)
     public void deleteNimbusDirectory(String nimbusDirectory) {
         try{
             Path nimbusFolder = STORAGE_ROOT.resolve(nimbusDirectory);
@@ -34,6 +35,7 @@ public class FileStorageService {
         }
     }
 
+    // Removes all files inside a Nimbus directory but keeps the folder itself
     public void emptyNimbusDirectory(String nimbusPath) {
         try{
             File nimbusFolder = STORAGE_ROOT.resolve(nimbusPath).toFile();
@@ -45,6 +47,7 @@ public class FileStorageService {
         }
     }
 
+    // Saves an uploaded file to disk under the given drop key path
     public void saveDropFile(String dropKey, MultipartFile multipartFile) throws IOException {
 
 
@@ -57,6 +60,7 @@ public class FileStorageService {
         }
     }
 
+    // Opens a stored file as a Spring Resource for viewing/streaming
     public Resource openDropFile(String dropKey ) throws MalformedURLException {
 
         Path filePath = STORAGE_ROOT.resolve(dropKey);
@@ -68,6 +72,7 @@ public class FileStorageService {
         return new UrlResource(filePath.toUri());
     }
 
+    // Deletes a single stored file identified by drop key
     public void deleteDrop(String dropKey) throws IOException {
 
         Path filePath = STORAGE_ROOT.resolve(dropKey);
@@ -81,6 +86,7 @@ public class FileStorageService {
         }
     }
 
+    // Returns a Resource for downloading a stored file
     public Resource downloadDropFile(String dropKey) throws MalformedURLException {
         Path filePath = STORAGE_ROOT.resolve(dropKey).normalize();
 
@@ -91,6 +97,7 @@ public class FileStorageService {
         return new UrlResource(filePath.toUri());
     }
 
+    // Returns a Resource that can be used as a link to the stored file
     public Resource getDropFileLink(String dropKey) throws MalformedURLException {
         Path filePath = STORAGE_ROOT.resolve(dropKey).normalize();
 
@@ -101,6 +108,7 @@ public class FileStorageService {
         return new UrlResource(filePath.toUri());
     }
 
+    // Deletes the root folder for a user's drops and everything inside it
     public void deleteUserDropFolder(String dropKey) {
         Path folderPath = STORAGE_ROOT.resolve(dropKey).normalize();
 
@@ -114,18 +122,5 @@ public class FileStorageService {
             throw new RuntimeException("Error while deleting folder: " + folderPath, e);
         }
     }
-
-
-
-//    public void nimbusRename(String userDisplayName, String newNimbusName, String oldNimbusName) throws IOException {
-//        Path oldPath = STORAGE_ROOT.resolve(userDisplayName).resolve(oldNimbusName);
-//        Path newPath = STORAGE_ROOT.resolve(userDisplayName).resolve(newNimbusName);
-//
-//        if (!Files.exists(oldPath)) {
-//            throw new IllegalArgumentException("Folder does not exist: " + oldPath);
-//        }
-//
-//        Files.move(oldPath, newPath, StandardCopyOption.ATOMIC_MOVE);
-//    }
 
 }

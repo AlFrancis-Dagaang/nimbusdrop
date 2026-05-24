@@ -26,26 +26,30 @@ public class EntityFetcher {
         this.verificationTokenRepository = verificationTokenRepository;
     }
 
+    // Returns user by email or throws if not found
     public User getUserByEmail(String email){
        return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    // Returns verification token by token string or throws if not found
     public VerificationToken getVerificationTokenByToken(String token){
         return verificationTokenRepository.findByToken(token).orElseThrow(() -> new VerificationNotFoundException("Token not found"));
     }
 
+    // Returns verification token by user id and type or throws if not found
     public VerificationToken getVerificationTokenByUserIdAndType(Long userId, TokenType type){
 
         return verificationTokenRepository.findByUserIdAndType(userId, type).orElseThrow(() -> new VerificationNotFoundException("Token not found"));
     }
 
 
-
+    // Returns Nimbus by id or throws if not found
     public Nimbus getNimbusById(Long nimbusId){
         return  nimbusRepository.findById(nimbusId)
                 .orElseThrow( () -> new NimbusNotFoundException("Nimbus not found: " + nimbusId));
     }
 
+    // Returns Drop by id or throws if not found
     public Drop getDropById(Long dropId){
         return dropRepository.findById(dropId).orElseThrow(() -> new DropNotFoundException("Drop not found: " + dropId));
     }

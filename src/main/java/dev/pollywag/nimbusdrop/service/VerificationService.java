@@ -32,8 +32,7 @@ public class VerificationService {
         this.emailService = emailService;
     }
 
-
-
+    // Confirm change of email using verification token
     public void newEmailConfirmation(String token){
         VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);
 
@@ -48,7 +47,8 @@ public class VerificationService {
 
         userRepository.save(user);
     }
-
+    
+    // Confirm account deletion using verification token
     public void confirmTokenDeletionAccount(String token, String email){
         User user = entityFetcher.getUserByEmail(email);
 

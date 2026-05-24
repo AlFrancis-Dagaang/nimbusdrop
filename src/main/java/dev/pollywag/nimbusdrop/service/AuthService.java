@@ -57,6 +57,7 @@ public class AuthService {
         this.verificationTokenRepository = verificationTokenRepository;
     }
 
+    // Registers a new user and sends an email verification link
     public void signup(String email, String username, String password, Role role) {
         // Check if user already exists
         if (userRepository.findByEmail(email).isPresent()) {
@@ -87,6 +88,7 @@ public class AuthService {
         emailService.sendConfirmationEmail(user.getEmail(), token);
     }
 
+    // Authenticates user credentials and returns access & refresh tokens
     public AuthResponseHolder authenticate(String email, String password) {
         // Authenticate user
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
@@ -107,6 +109,7 @@ public class AuthService {
         return new AuthResponseHolder(authResponse, refreshToken);
     }
 
+    // Validates a refresh token and issues new access & refresh tokens
     public AuthResponseHolder refreshToken(String refreshToken) {
         if (!jwtService.isRefreshToken(refreshToken)) {
             throw new TokenRefreshException("Invalid refresh token");
@@ -129,6 +132,7 @@ public class AuthService {
         return new AuthResponseHolder(authResponse, newRefreshToken);
     }
 
+    // Confirms a signup token and enables the associated user account
     public void signUpConfirmation(String token){
         VerificationToken verificationToken = entityFetcher.getVerificationTokenByToken(token);
 
@@ -146,6 +150,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    // Resends signup verification email and refreshes token expiry
     public void resendEmailVerificationToken(String email){
         User user = entityFetcher.getUserByEmail(email);
         VerificationToken userVerificationToken = entityFetcher.getVerificationTokenByUserIdAndType(user.getId(), TokenType.SIGNUP_CONFIRM);
@@ -162,6 +167,7 @@ public class AuthService {
         emailService.sendConfirmationEmail(email, token);
     }
 
+    // Creates or updates a password reset token and emails the reset link
     public void createForgotPasswordToken(String email){
         User user = entityFetcher.getUserByEmail(email);
         VerificationToken verificationToken = verificationTokenRepository.findByUserIdAndType(user.getId(), TokenType.PASSWORD_FORGOT).orElse(null);
@@ -190,7 +196,7 @@ public class AuthService {
 
         emailService.sendForgotPasswordLink(email, token);
     }
-
+    // Sets a new password for the user using a valid reset token
     public void setNewUserPassword(String token, String newPassword){
         VerificationToken userVerificationToken = entityFetcher.getVerificationTokenByToken(token);
         LocalDateTime expiryDate = userVerificationToken.getExpiryDate();
@@ -207,6 +213,7 @@ public class AuthService {
 
     }
 
+    // Builds AuthResponse DTO from user entity and access token
     private AuthResponse createAuthResponse(User user, String accessToken) {
 
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);

@@ -10,6 +10,7 @@ public class CheckOwnerUtil {
         Long userId = user.getId();
         Long nimbusOwnerId = nimbus.getUser().getId();
 
+        // Return true if ids are different (user is not owner)
         return !userId.equals(nimbusOwnerId);
     }
 
@@ -17,6 +18,7 @@ public class CheckOwnerUtil {
         Long userId = user.getId();
         Long drowOwnerId = drop.getNimbus().getUser().getId();
 
+        // Return true if ids are different (user is not owner)
         return !userId.equals(drowOwnerId);
     }
 

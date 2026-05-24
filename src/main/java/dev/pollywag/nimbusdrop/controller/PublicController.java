@@ -22,6 +22,7 @@ public class PublicController {
         this.sharedLinkService = sharedLinkService;
     }
 
+    // Download a shared drop file by its public token
     @GetMapping("/{token}")
     public ResponseEntity<Resource>createDropSharedLink(@PathVariable String token) throws MalformedURLException {
         Resource resource = sharedLinkService.dropSharedLink(token);

@@ -46,6 +46,7 @@ public class DropService {
         this.entityFetcher = entityFetcher;
     }
 
+    // Fetches a Drop by id and validates that the requesting user is the owner
     public Drop getDropById(Long dropId, String email) {
         User user = entityFetcher.getUserByEmail(email);
         Drop drop = entityFetcher.getDropById(dropId);
@@ -57,6 +58,7 @@ public class DropService {
         return drop;
     }
 
+    // Uploads a new file as a Drop, enforcing ownership and quota rules and persisting metadata
     public Drop uploadDrop(Long nimbusId, MultipartFile file, String email) throws IOException {
         User user = entityFetcher.getUserByEmail(email);
         Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);
@@ -98,6 +100,7 @@ public class DropService {
         return drop;
     }
 
+    // Deletes an existing Drop and its stored file, updating used storage and enforcing ownership
     public void deleteDrop(Long dropId, String email) throws IOException {
         User user = entityFetcher.getUserByEmail(email);
         Drop drop = entityFetcher.getDropById(dropId);
@@ -118,6 +121,7 @@ public class DropService {
         dropRepository.delete(drop);
     }
 
+    // Opens a Drop for viewing/streaming, validating ownership and view quota
     public Resource openDrop(Long dropId, String email) throws MalformedURLException {
         User user = entityFetcher.getUserByEmail(email);
         Drop drop = entityFetcher.getDropById(dropId);
@@ -138,7 +142,7 @@ public class DropService {
         return fileStorageService.openDropFile(dropKey);
     }
 
-
+    // Downloads a Drop file by key, validating Nimbus ownership and download quota
     public Resource downloadDropFile(String dropKey, String email, Long nimbusId) throws IOException {
         User user = entityFetcher.getUserByEmail(email);
         Nimbus nimbus = entityFetcher.getNimbusById(nimbusId);

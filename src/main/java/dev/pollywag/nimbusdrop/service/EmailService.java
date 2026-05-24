@@ -14,6 +14,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    // Sends signup confirmation email with a verification link
     public void sendConfirmationEmail(String toEmail, String token) {
         String confirmUrl = "http://localhost:5173/verification-success?token=" + token;
 
@@ -24,6 +25,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    // Sends email change confirmation email with a verification link
     public void sendConfirmationNewEmail(String toEmail, String token) {
         String confirmUrl = "http://localhost:8085/auth/new-email?token=" + token;
 
@@ -34,6 +36,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    // Sends a one-time token code used to confirm account deletion
     public void sendTokenCodeForDeletion(String toEmail, String token) {
         message.setTo(toEmail);
         message.setSubject("Confirm Your Account Deletion");
@@ -53,6 +56,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    // Sends password reset email with a secure reset link
     public void sendForgotPasswordLink(String toEmail, String token) {
         message.setTo(toEmail);
         message.setSubject("Reset Your Password");

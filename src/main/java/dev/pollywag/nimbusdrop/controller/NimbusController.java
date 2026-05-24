@@ -39,6 +39,7 @@ public class NimbusController {
         this.modelMapper = modelMapper;
     }
 
+    // Create a new Nimbus for the authenticated user
     @PostMapping("")
     public ResponseEntity<ApiResponse<NimbusResponse>> createNimbus(@RequestBody CreateNimbusRequest request, Principal principal) {
         String nimbusName = request.getNimbusName();
@@ -51,6 +52,7 @@ public class NimbusController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Nimbus created",response));
     }
 
+    // Delete an existing Nimbus by ID for the authenticated user
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteNimbus(@PathVariable("id") Long id, Principal principal){
         String email = principal.getName();
@@ -58,6 +60,7 @@ public class NimbusController {
         return ResponseEntity.ok(ApiResponse.success("Success deleted the nimbus "));
     }
 
+    // Get a single Nimbus by ID for the authenticated user
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<NimbusResponse>> getNimbusById(@PathVariable("id") Long id, Principal principal) {
         String email = principal.getName();
@@ -69,6 +72,7 @@ public class NimbusController {
         return ResponseEntity.ok(ApiResponse.success("Nimbus found", response));
     }
 
+    // Get all drops that belong to a specific Nimbus for the authenticated user
     @GetMapping("/{id}/drops")
     public ResponseEntity<ApiResponse<List<DropResponse>>> getAllDropByNimbusId (@PathVariable Long id, Principal principal){
         String email = principal.getName();
@@ -84,7 +88,7 @@ public class NimbusController {
         return ResponseEntity.ok(ApiResponse.success("Drops found", dropResponseList));
     }
 
-
+    // Update the name of an existing Nimbus
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<NimbusResponse>> updateNimbusName (@PathVariable("id") Long id, @RequestBody UpdateNimbusNameRequest request, Principal principal){
         String newNimbusName = request.getNimbusName();
@@ -97,12 +101,14 @@ public class NimbusController {
         return ResponseEntity.ok(ApiResponse.success("Nimbus updated", response));
     }
 
+    // Remove all drops inside a Nimbus (empty it) for the authenticated user
     @DeleteMapping("/{id}/empty")
     public ResponseEntity<ApiResponse<String>> emptyNimbus(@PathVariable("id") Long id, Principal principal){
         nimbusService.emptyNimbus(id, principal.getName());
         return ResponseEntity.ok(ApiResponse.success("Successfully empty nimbus "));
     }
 
+    // Upload a new drop into a specific Nimbus
     @PostMapping("{id}/drops")
     public ResponseEntity<ApiResponse<DropResponse>> uploadDrop(@PathVariable Long id, @RequestParam("file") MultipartFile file, Principal principal) throws IOException {
         Drop uploadedDrop = dropService.uploadDrop(id, file, principal.getName());
@@ -110,6 +116,7 @@ public class NimbusController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Successfully created the drop", response));
     }
 
+    // Get a single drop by ID for the authenticated user
     @GetMapping("/drop/{id}")
     public ResponseEntity<ApiResponse<DropResponse>> getDrop (@PathVariable Long id, Principal principal) {
         String email = principal.getName();
@@ -119,6 +126,7 @@ public class NimbusController {
         return ResponseEntity.ok(ApiResponse.success("Drop found", response));
     }
 
+    // Open (inline view) a drop file in the browser
     @GetMapping("/drop/{dropId}/open")
     public ResponseEntity<Resource> openDrop(@PathVariable Long dropId, Principal principal) throws MalformedURLException {
         String email = principal.getName();
@@ -132,12 +140,14 @@ public class NimbusController {
                 .body(resource);
     }
 
+    // Delete a drop by ID for the authenticated user
     @DeleteMapping("/drop/{id}")
     public ResponseEntity<ApiResponse<?>> deleteDrop(@PathVariable Long id, Principal principal) throws IOException {
         dropService.deleteDrop(id, principal.getName());
         return ResponseEntity.ok(ApiResponse.success("Successfully deleted the drop"));
     }
 
+    // Download a drop file as an attachment using user/nimbus/file path parameters
     @GetMapping("/drop/download/{userId}/{nimbusId}/{fileName}")
     public ResponseEntity<Resource> downloadFile(
             @PathVariable Long userId,
@@ -156,12 +166,14 @@ public class NimbusController {
                 .body(resource);
     }
 
+    // Create a shareable link for a drop
     @GetMapping("/drop/{dropId}/copy-url")
     public ResponseEntity<ApiResponse<?>>createDropSharedLink(@PathVariable Long dropId, Principal principal) {
         String response = nimbusService.createShareLink(dropId, principal.getName());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    // Helper: build a public download URL for a drop and set it on the response DTO
     public void setDropUrl(DropResponse response, Drop drop){
         Long userId = drop.getNimbus().getUser().getId();
         Long nimbusId = drop.getNimbus().getId();

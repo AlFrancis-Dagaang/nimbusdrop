@@ -33,7 +33,7 @@ public class UserController {
         this.modelMapper = modelMapper;
     }
 
-
+    // Get basic information for the currently authenticated user
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(Principal principal) {
         String email = principal.getName();
@@ -43,7 +43,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Successfully get the user", response));
     }
 
-
+    // Change the username of the currently authenticated user
     @PostMapping("/username")
     public ResponseEntity<ApiResponse<UserResponse>> changeUsername(@Valid @RequestBody ChangeUsernameRequest request, Principal principal) {
         String newUsername = request.getNewUsername();
@@ -55,6 +55,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Username changed successfully", response));
     }
 
+    // Change password for the current user (requires old and new password)
     @PostMapping("/password")
     public ResponseEntity<ApiResponse<?>> changePassword(@Valid @RequestBody ChangePasswordRequest request, Principal principal) {
         String newPassword = request.getNewPassword();
@@ -66,7 +67,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
     }
 
-
+    // Request to change the email of the current user (verification email sent)
     @PostMapping("/email")
     public ResponseEntity<ApiResponse<?>> changeEmail (@Valid @RequestBody ChangeEmailRequest request, Principal principal ) {
         String newEmail = request.getNewEmail();
@@ -78,6 +79,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Check you email to verify your new email address"));
     }
 
+    // Request a token by email for account deletion
     @GetMapping("/token/delete")
     public ResponseEntity<ApiResponse<?>> requestDeleteToken (Principal principal ) {
         String email = principal.getName();
@@ -86,6 +88,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Check you email to get your token"));
     }
 
+    // Confirm account deletion using a token previously sent by email
     @PostMapping("/account/delete/confirm")
     public ResponseEntity<ApiResponse<String>> confirmDeleteAccount (@Valid @RequestBody AccountDeletionRequest request, Principal principal ) {
         String token = request.getToken();
@@ -96,7 +99,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Account deleted successfully"));
     }
 
-
+    // Get all Nimbus objects belonging to the current user
     @GetMapping("/nimbus")
     public ResponseEntity<ApiResponse<List<NimbusResponse>>> getAllNimbusOfUser (Principal principal) {
         String email = principal.getName();

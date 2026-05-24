@@ -61,10 +61,7 @@ class NimbusServiceTest {
         mockNimbus.setDrops(new ArrayList<>());
     }
 
-    // =====================================================================
     // createNimbus()
-    // =====================================================================
-
     @Test
     void createNimbus_shouldReturnSavedNimbus_whenUserExists() {
         // Arrange
@@ -93,10 +90,7 @@ class NimbusServiceTest {
         verify(nimbusRepository, never()).save(any());
     }
 
-    // =====================================================================
     // getNimbusById()
-    // =====================================================================
-
     @Test
     void getNimbusById_shouldReturnNimbus_whenOwnerRequests() {
         // Arrange
@@ -126,10 +120,7 @@ class NimbusServiceTest {
                 nimbusService.getNimbusById(1L, "other@example.com"));
     }
 
-    // =====================================================================
     // deleteNimbus()
-    // =====================================================================
-
     @Test
     void deleteNimbus_shouldDelete_whenOwnerAndNimbusIsEmpty() {
         // Arrange — nimbus has no drops (already empty)
@@ -177,10 +168,7 @@ class NimbusServiceTest {
         verify(nimbusRepository, never()).delete(any());
     }
 
-    // =====================================================================
     // updateNimbusName()
-    // =====================================================================
-
     @Test
     void updateNimbusName_shouldUpdateName_whenOwnerRequests() {
         // Arrange
@@ -212,10 +200,7 @@ class NimbusServiceTest {
         verify(nimbusRepository, never()).save(any());
     }
 
-    // =====================================================================
     // getAllDropByNimbusId()
-    // =====================================================================
-
     @Test
     void getAllDropByNimbusId_shouldReturnDrops_whenOwnerRequests() {
         // Arrange
@@ -232,10 +217,7 @@ class NimbusServiceTest {
         verify(dropRepository, times(1)).findByNimbusId(1L);
     }
 
-    // =====================================================================
     // emptyNimbus()
-    // =====================================================================
-
     @Test
     void emptyNimbus_shouldClearDrops_whenNimbusHasDrops() {
         // Arrange — nimbus has drops

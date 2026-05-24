@@ -47,10 +47,7 @@ class UserServiceTest {
         mockUser.setVerificationTokens(new ArrayList<>());
     }
 
-    // =====================================================================
     // getUser()
-    // =====================================================================
-
     @Test
     void getUser_shouldReturnUser_whenUserExists() {
         // Arrange
@@ -76,10 +73,7 @@ class UserServiceTest {
                 userService.getUser("unknown@example.com"));
     }
 
-    // =====================================================================
     // changeUsername()
-    // =====================================================================
-
     @Test
     void changeUsername_shouldUpdateUsername_whenUserExists() {
         // Arrange
@@ -107,10 +101,7 @@ class UserServiceTest {
         verify(userRepository, never()).save(any());
     }
 
-    // =====================================================================
     // changePassword()
-    // =====================================================================
-
     @Test
     void changePassword_shouldUpdatePassword_whenOldPasswordMatches() {
         // Arrange
@@ -142,10 +133,7 @@ class UserServiceTest {
         verify(passwordEncoder, never()).encode(anyString());
     }
 
-    // =====================================================================
     // changeEmail()
-    // =====================================================================
-
     @Test
     void changeEmail_shouldSendVerificationEmail_whenPasswordMatches() {
         // Arrange
@@ -199,10 +187,7 @@ class UserServiceTest {
         assertNotNull(addedToken.getToken());
     }
 
-    // =====================================================================
     // deleteToken()
-    // =====================================================================
-
     @Test
     void deleteToken_shouldSendDeletionCode_whenUserExists() {
         // Arrange
@@ -240,10 +225,7 @@ class UserServiceTest {
         assertTrue(addedToken.getToken().matches("\\d{6}"));
     }
 
-    // =====================================================================
     // findAllNimbusByUserId()
-    // =====================================================================
-
     @Test
     void findAllNimbusByUserId_shouldReturnNimbusList_whenUserExists() {
         // Arrange

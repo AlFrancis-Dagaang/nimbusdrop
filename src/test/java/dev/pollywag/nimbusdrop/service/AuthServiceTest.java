@@ -67,10 +67,7 @@ class AuthServiceTest {
         mockVerificationToken.setType(TokenType.SIGNUP_CONFIRM);
     }
 
-    // =====================================================================
     // signup()
-    // =====================================================================
-
     @Test
     void signup_shouldSaveUser_whenEmailIsNotTaken() {
         // Arrange
@@ -135,10 +132,7 @@ class AuthServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
-    // =====================================================================
     // authenticate()
-    // =====================================================================
-
     @Test
     void authenticate_shouldReturnTokens_whenCredentialsAreValid() {
         // Arrange
@@ -231,10 +225,7 @@ class AuthServiceTest {
         verify(jwtService, never()).generateAccessToken(any());
     }
 
-    // =====================================================================
     // signUpConfirmation()
-    // =====================================================================
-
     @Test
     void signUpConfirmation_shouldEnableUser_whenTokenIsValid() {
         // Arrange
@@ -282,10 +273,7 @@ class AuthServiceTest {
         verify(userRepository, never()).save(any());
     }
 
-    // =====================================================================
     // resendEmailVerificationToken()
-    // =====================================================================
-
     @Test
     void resendEmailVerificationToken_shouldUpdateExpiryAndResendEmail() {
         // Arrange

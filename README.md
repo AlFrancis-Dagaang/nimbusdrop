@@ -1,6 +1,7 @@
 # NimbusDrop
 
-A secure file storage REST API built with Spring Boot. NimbusDrop allows users to upload, download, manage, and share files through a clean and well-structured API, backed by JWT-based authentication and role-based access control.
+A secure file storage REST API built with Spring Boot. NimbusDrop allows users to upload, download, manage, and share files through a clean and well-structured API, backed by JWT-based authentication and secured with JWT authentication and user-scoped access control
+.
 
 ---
 
